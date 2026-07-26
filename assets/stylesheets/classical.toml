@@ -1,0 +1,44 @@
+name = "Clásico"
+description = "Estilo de partitura impresa — limpio, sin sombras ni bordes"
+
+[page]
+bg_light = "#FFFFFF"
+bg_dark = "#262626"
+border_light = "#B4B4B4"
+border_dark = "#505050"
+border_width = 0.0
+
+[page.shadow]
+enabled = false
+offset_x = 4.0
+offset_y = 4.0
+alpha = 60
+
+[header]
+title_size = 36.0
+composer_size = 17.0
+tempo_size = 12.0
+row_gap = 8.0
+title_top_offset = 47.0
+header_staff_gap = 20.0
+title_light = "#000000"
+title_dark = "#DCDCDC"
+subtitle_light = "#7C7C7C"
+subtitle_dark = "#B4B4B4"
+
+[notation]
+staff_light = "#000000"
+staff_dark = "#E0E0E0"
+note_light = "#000000"
+note_dark = "#E0E0E0"
+clef_light = "#000000"
+clef_dark = "#E0E0E0"
+staff_scale = 0.75
+
+[notation.clefs.treble]
+glyph_scale = 4.2
+fine_offset = -0.3
+
+[notation.clefs.bass]
+glyph_scale = 5.0
+fine_offset = 0.1

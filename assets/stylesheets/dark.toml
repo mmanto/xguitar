@@ -1,0 +1,22 @@
+name = "Oscuro"
+description = "Fondo oscuro para modo nocturno"
+
+[page]
+bg_light = "#1E1E1E"
+bg_dark = "#1E1E1E"
+border_light = "#555555"
+border_dark = "#555555"
+
+[header]
+title_light = "#E0E0E0"
+title_dark = "#E0E0E0"
+subtitle_light = "#999999"
+subtitle_dark = "#999999"
+
+[notation]
+staff_light = "#CCCCCC"
+staff_dark = "#CCCCCC"
+note_light = "#CCCCCC"
+note_dark = "#CCCCCC"
+clef_light = "#CCCCCC"
+clef_dark = "#CCCCCC"
