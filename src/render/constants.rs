@@ -14,7 +14,7 @@ pub const DEFAULT_MEASURE_WIDTH: f32 = 220.0;
 pub const NOTEHEAD_SIZE: f32 = STAFF_LINE_SPACING * 2.5;
 
 /// Ancho de línea de ledger.
-pub const LEDGER_LINE_WIDTH: f32 = NOTEHEAD_SIZE * 1.2;
+pub const LEDGER_LINE_WIDTH: f32 = NOTEHEAD_SIZE * 1.02;
 
 /// A4 width in egui points (210 mm at 96 DPI).
 pub const A4_WIDTH_PT: f32 = 210.0 * 96.0 / 25.4; // ≈ 793.7

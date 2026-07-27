@@ -971,7 +971,15 @@ fn parse_note(note_node: &Node, octave_shift: i8) -> Option<Note> {
         chord,
         attachments: parse_attachments(note_node)
             .map(|mut a| {
-                a.ties.extend(parse_ties(note_node));
+                // <tied> in <notations> and <tie> as direct child represent the
+                // same logical tie — deduplicate by (kind, number).
+                let existing: Vec<(crate::notation::TieKind, u8)> =
+                    a.ties.iter().map(|t| (t.kind, t.number)).collect();
+                for tie in parse_ties(note_node) {
+                    if !existing.contains(&(tie.kind, tie.number)) {
+                        a.ties.push(tie);
+                    }
+                }
                 a
             })
             .or_else(|| {

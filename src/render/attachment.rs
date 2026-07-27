@@ -450,14 +450,15 @@ pub fn render_tie_curve(
         Placement::Below => 1.0,
     };
 
-    let mid_y = (start_y + end_y) / 2.0 + arc_dir * arc_height;
-    let cp1x = start_x + dist * 0.4;
-    let cp1y = mid_y;
-    let cp2x = start_x + dist * 0.6;
-    let cp2y = mid_y;
+    let avg_y = (start_y + end_y) / 2.0;
+    // Control points spread wider and lower than the peak for a flatter top
+    let cp1x = start_x + dist * 0.25;
+    let cp1y = avg_y + arc_dir * arc_height * 0.65;
+    let cp2x = start_x + dist * 0.75;
+    let cp2y = avg_y + arc_dir * arc_height * 0.65;
 
     let stroke = egui::Stroke::new(line_spacing * 0.12, color);
-    let steps = 16;
+    let steps = 24;
 
     let mut prev = egui::Pos2::new(start_x, start_y);
     for i in 1..=steps {

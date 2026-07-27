@@ -218,16 +218,16 @@ fn default_composer_size() -> f32 {
     8.5
 }
 fn default_tempo_size() -> f32 {
-    6.0
+    10.0
 }
 fn default_row_gap() -> f32 {
     8.0
 }
 fn default_title_top_offset() -> f32 {
-    47.0
+    60.0
 }
 fn default_header_staff_gap() -> f32 {
-    20.0
+    35.0
 }
 fn default_title_light() -> String {
     "#000000".into()

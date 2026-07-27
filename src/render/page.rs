@@ -11,7 +11,7 @@ use super::{
     render_direction, render_key_signature, render_lyrics, render_measure_elements,
     render_staff_lines, render_time_signature,
 };
-use crate::notation::{BarStyle, Score};
+use crate::notation::{BarStyle, DirectionKind, Metronome, NoteFigure, Score};
 
 /// Una hoja A4 con los índices de los sistemas y staves que contiene.
 #[derive(Clone, Debug)]
@@ -146,10 +146,11 @@ pub fn render_page(
         egui::StrokeKind::Inside,
     );
 
-    // Page header: title, composer
+    // Page header: title, composer, tempo
     let header_cx = top_left.x + layout.page_width * 0.5;
     let title_y = top_left.y + sheet.header.title_top_offset * zoom;
     let composer_y = title_y + (sheet.header.title_size + sheet.header.row_gap) * zoom;
+    let tempo_y = composer_y + (sheet.header.composer_size + sheet.header.row_gap * 2.0) * zoom;
 
     let title_color = sheet.title_color(style.dark_mode);
     painter.text(
@@ -175,13 +176,23 @@ pub fn render_page(
         subtitle_color,
     );
 
-    // Staves
-    let staff_height_val = line_spacing * (STAFF_LINE_COUNT as f32 - 1.0);
-    let staff_slot_height = staff_height_val + SYSTEM_SPACING * zoom;
-
-    let usable_width = layout.page_width - PAGE_MARGIN_LEFT * zoom - PAGE_MARGIN_RIGHT * zoom;
-    let left_x = top_left.x + PAGE_MARGIN_LEFT * zoom;
-
+    // Tempo (BPM): extract from first measure's metronome direction
+    let tempo_row_height = if let Some(metro) = first_metronome(score) {
+        // Use Unicode note symbols visible at text sizes (not SMuFL PUA)
+        let note_char = metronome_note_char(metro.beat_unit);
+        let glyph_size = line_spacing * 1.6;
+        let text = format!("{} = {}", note_char, metro.per_minute);
+        painter.text(
+            egui::Pos2::new(header_cx, tempo_y),
+            egui::Align2::CENTER_TOP,
+            text,
+            egui::FontId::new(glyph_size, egui::FontFamily::Proportional),
+            title_color,
+        );
+        glyph_size + sheet.header.row_gap * zoom
+    } else {
+        0.0
+    };
     let header_bottom = top_left.y
         + (sheet.header.title_top_offset
             + sheet.header.title_size
@@ -189,7 +200,14 @@ pub fn render_page(
             + sheet.header.composer_size
             + sheet.header.row_gap
             + sheet.header.header_staff_gap)
-            * zoom;
+            * zoom
+        + tempo_row_height;
+    // Staves
+    let staff_height_val = line_spacing * (STAFF_LINE_COUNT as f32 - 1.0);
+    let staff_slot_height = staff_height_val + SYSTEM_SPACING * zoom;
+
+    let usable_width = layout.page_width - PAGE_MARGIN_LEFT * zoom - PAGE_MARGIN_RIGHT * zoom;
+    let left_x = top_left.x + PAGE_MARGIN_LEFT * zoom;
 
     let _prev_key: Option<&crate::notation::KeySignature> = None;
 
@@ -311,9 +329,13 @@ pub fn render_page(
                 style,
             );
 
-            // Render staff-level directions (dynamics, text, etc.) below the staff
+            // Render staff-level directions (dynamics, text, etc.) below the staff.
+            // Metronome is rendered in the page header — skip it here.
             let staff_end_x = measures_x + measure_usable_width;
             for direction in &measure.directions {
+                if matches!(direction.kind, DirectionKind::Metronome(_)) {
+                    continue;
+                }
                 render_direction(
                     painter,
                     measure_x + measure_width * 0.5,
@@ -390,6 +412,29 @@ pub fn render_page(
                 staff_color,
             );
         }
+    }
+}
+
+/// Extrae el metrónomo de la primera medida del primer staff.
+fn first_metronome(score: &Score) -> Option<&Metronome> {
+    let staff = score.systems.first()?.staves.first()?;
+    let measure = staff.measures.first()?;
+    for dir in &measure.directions {
+        if let DirectionKind::Metronome(metro) = &dir.kind {
+            return Some(metro);
+        }
+    }
+    None
+}
+
+/// Símbolo de nota visible para el metrónomo (usa Unicode, no SMuFL PUA).
+fn metronome_note_char(figure: NoteFigure) -> char {
+    match figure {
+        NoteFigure::Quarter => '\u{2669}',  // ♩
+        NoteFigure::Eighth => '\u{266A}',   // ♪
+        NoteFigure::Half => '\u{2669}',     // sin símbolo half en Unicode, usa ♩
+        NoteFigure::Whole => '\u{2669}',    // ídem
+        _ => '\u{2669}',                    // default: ♩
     }
 }
 

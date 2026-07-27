@@ -13,8 +13,8 @@ use super::{
     render_staff_lines,
 };
 use crate::notation::{
-    BarStyle, Clef, KeySignature, Measure, MeasureElement, NoteFigure, Score, StemDirection,
-    TimeSignatureStyle,
+    BarStyle, Clef, KeySignature, Measure, MeasureElement, NoteFigure, Placement, Score,
+    StemDirection, TimeSignatureStyle,
 };
 use eframe::egui;
 /// Estilo visual para el renderizado de partituras.
@@ -293,15 +293,15 @@ pub fn render_measure_elements(
                         );
                     }
 
-                    render_notehead(
-                        painter,
-                        staff_origin.x + offset_x,
-                        egui::Pos2::new(staff_origin.x + offset_x, staff_origin.y),
-                        *sp,
-                        note.figure,
-                        color,
-                        line_spacing,
-                    );
+                render_notehead(
+                    painter,
+                    chord_x + offset_x,
+                    egui::Pos2::new(chord_x + offset_x, staff_origin.y),
+                    *sp,
+                    note.figure,
+                    color,
+                    line_spacing,
+                );
                 }
 
                 // Chord stem
@@ -585,6 +585,7 @@ pub fn render_cross_note_elements(
     struct NotePos {
         x: f32,
         y: f32,
+        staff_position: i8,
         attachments: crate::notation::NoteAttachment,
     }
 
@@ -593,25 +594,45 @@ pub fn render_cross_note_elements(
 
     for (mi, measure) in measures.iter().enumerate() {
         let m_x = measure_xs[mi];
+        let m_width = measure_widths[mi];
+        let renderable_count = measure
+            .elements
+            .iter()
+            .filter(|e| !matches!(e, MeasureElement::Backup(_) | MeasureElement::Forward(_)))
+            .count();
+        if renderable_count == 0 {
+            continue;
+        }
+        let note_spacing = m_width / renderable_count as f32;
+        let mut render_idx: usize = 0;
         for elem in &measure.elements {
-            let (note, _render_idx) = match elem {
-                MeasureElement::Note(n) => (n, 0),
-                _ => continue,
-            };
-            if let Some(ref att) = note.attachments {
-                let sp = note.pitch.staff_position(clef);
-                let note_y = staff_origin.y - sp as f32 * half_spacing;
-                // Approximate x: use measure center for now
-                notes.push(NotePos {
-                    x: m_x + measure_widths[mi] / 2.0,
-                    y: note_y,
-                    attachments: att.clone(),
-                });
+            match elem {
+                MeasureElement::Backup(_) | MeasureElement::Forward(_) => continue,
+                MeasureElement::Note(note) => {
+                    if let Some(ref att) = note.attachments {
+                        let sp = note.pitch.staff_position(clef);
+                        let note_y = staff_origin.y - sp as f32 * half_spacing;
+                        let note_x = m_x + note_spacing * (render_idx as f32 + 0.5);
+                        notes.push(NotePos {
+                            x: note_x,
+                            y: note_y,
+                            staff_position: sp,
+                            attachments: att.clone(),
+                        });
+                    }
+                    render_idx += 1;
+                }
+                _ => {
+                    render_idx += 1;
+                }
             }
         }
     }
 
     // Render ties
+    // Notehead visual height ≈ 1 staff space → half = line_spacing * 0.5
+    let notehead_half = line_spacing * 0.5;
+    let tie_gap = line_spacing * 0.15;
     for (i, np) in notes.iter().enumerate() {
         for tie in &np.attachments.ties {
             if tie.kind != TieKind::Start {
@@ -625,13 +646,30 @@ pub fn render_cross_note_elements(
                     .iter()
                     .any(|t| t.kind == TieKind::Stop && t.number == tie.number)
                 {
+                    // Auto-placement: tie goes opposite to stem direction.
+                    // Notes above middle line (sp > 0) → stem down → tie above.
+                    // Notes below middle line (sp < 0) → stem up → tie below.
+                    let placement = if np.staff_position >= 0 {
+                        Placement::Above
+                    } else {
+                        Placement::Below
+                    };
+                    let dir: f32 = match placement {
+                        Placement::Above => -1.0,
+                        Placement::Below => 1.0,
+                    };
+                    let y_off = dir * notehead_half;
+                    let start_x = np.x + notehead_half + tie_gap;
+                    let start_y = np.y + y_off;
+                    let end_x = np2.x - notehead_half - tie_gap;
+                    let end_y = np2.y + y_off;
                     render_tie_curve(
                         painter,
-                        np.x,
-                        np.y,
-                        np2.x,
-                        np2.y,
-                        tie.placement,
+                        start_x,
+                        start_y,
+                        end_x,
+                        end_y,
+                        placement,
                         line_spacing,
                         color,
                     );
@@ -879,9 +917,13 @@ pub fn render_score(
                     style,
                 );
 
-                // Render staff-level directions below the staff
+                // Render staff-level directions below the staff.
+                // Metronome is rendered in the page header — skip it here.
                 let staff_end_x = measure_start_x + measure_usable_width;
                 for direction in &measure.directions {
+                    if matches!(direction.kind, crate::notation::DirectionKind::Metronome(_)) {
+                        continue;
+                    }
                     render_direction(
                         painter,
                         measure_x + measure_width * 0.5,

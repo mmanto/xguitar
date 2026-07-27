@@ -21,11 +21,13 @@ pub fn configure_fonts(ctx: &egui::Context) {
             egui::FontData::from_static(include_bytes!("../lib/MusicFonts/Leland/LelandText.otf"))
                 .into(),
         );
-        fonts
+        let proportional = fonts
             .families
             .get_mut(&egui::FontFamily::Proportional)
-            .expect("Proportional font family missing")
-            .push("LelandText".into());
+            .expect("Proportional font family missing");
+        proportional.push("LelandText".into());
+        // Also add Leland for SMuFL music glyphs (noteheads, etc.)
+        proportional.push("Leland".into());
     }
 
     ctx.set_fonts(fonts);
