@@ -1,9 +1,9 @@
 use crate::musicxml::parse_musicxml;
 use crate::{
-    Accidental, Barline, Clef, I18n, KeySignature, Lang, Measure, MeasureElement, Note, NoteFigure,
-    PAGE_GAP, Pitch, RenderStyle, STAFF_LINE_SPACING, Score, ScoreStylesheet, Staff, StaffKind,
-    StemDirection, Step, System, TimeSignature, TimeSignatureStyle, compute_pages, configure_fonts,
-    render_pages,
+    Accidental, BASE_SCALE, Barline, Clef, I18n, KeySignature, Lang, Measure, MeasureElement, Note,
+    NoteFigure, PAGE_GAP, Pitch, RenderStyle, STAFF_LINE_SPACING, Score, ScoreStylesheet, Staff,
+    StaffKind, StemDirection, Step, System, TimeSignature, TimeSignatureStyle, compute_pages,
+    configure_fonts, render_pages,
 };
 use eframe::egui;
 use egui::ViewportCommand;
@@ -59,7 +59,7 @@ impl Document {
                 part_list: crate::PartList::default(),
             },
             file_path: None,
-            zoom: 1.30,
+            zoom: 1.0,
             label: "Sin título".into(),
             pending_step: None,
             pending_figure_digits: String::new(),
@@ -70,7 +70,7 @@ impl Document {
     fn from_score(score: Score, label: String, file_path: Option<String>) -> Self {
         Self {
             score,
-            zoom: 1.30,
+            zoom: 1.0,
             label,
             file_path,
             pending_step: None,
@@ -602,8 +602,14 @@ impl eframe::App for MGuitarApp {
             )
             .show(ui, |ui| {
                 let sheet = &self.stylesheets[self.selected_sheet];
+                // `zoom` es el 100% "lógico" que el usuario controla; BASE_SCALE
+                // calibra ese 100% para que la partitura se vea como una edición
+                // bien grabada (ver comentario en constants.rs / ADR-007), y se
+                // aplica acá — el único punto donde se lee el zoom para renderizar —
+                // para cubrir por igual la geometría de notación y el encabezado.
+                let render_zoom = zoom * BASE_SCALE;
                 let line_spacing =
-                    STAFF_LINE_SPACING * zoom * sheet.notation.staff_scale;
+                    STAFF_LINE_SPACING * render_zoom * sheet.notation.staff_scale;
                 let style = RenderStyle {
                     line_spacing,
                     dark_mode: false,
@@ -616,21 +622,21 @@ impl eframe::App for MGuitarApp {
                     + sheet.header.row_gap
                     + sheet.header.tempo_size
                     + sheet.header.header_staff_gap)
-                    * zoom;
+                    * render_zoom;
                 let layout =
-                    compute_pages(&self.documents[active].score, zoom, header_height);
+                    compute_pages(&self.documents[active].score, render_zoom, header_height);
                 egui::ScrollArea::vertical()
                     .auto_shrink([false; 2])
                     .show(ui, |ui| {
                         let available = ui.available_width();
                         let pages_per_row =
-                            if available >= layout.page_width * 2.0 + PAGE_GAP * zoom {
+                            if available >= layout.page_width * 2.0 + PAGE_GAP * render_zoom {
                                 2
                             } else {
                                 1
                             };
                         let row_width = pages_per_row as f32 * layout.page_width
-                            + (pages_per_row as f32 - 1.0) * PAGE_GAP * zoom;
+                            + (pages_per_row as f32 - 1.0) * PAGE_GAP * render_zoom;
                         let left_pad = ((available - row_width) / 2.0).max(20.0);
                         let total_h = layout.total_height + 40.0;
                         let size = egui::Vec2::new(available, total_h);

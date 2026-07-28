@@ -312,7 +312,12 @@ pub fn render_page(
                 - key_sig_width
                 - system.left_margin * zoom;
 
-            let measure_usable_full = usable_width - system.left_margin * zoom;
+            // Los renglones siguientes repiten la clave (convención de grabado
+            // estándar) pero no la armadura ni el compás, así que solo reservan
+            // el ancho de la clave.
+            let measure_usable_continuation = usable_width
+                - (INITIAL_BAR_GAP + CLEF_WIDTH) * zoom
+                - system.left_margin * zoom;
 
             let lines =
                 break_measures_into_lines(&staff.measures, measure_usable_width, line_spacing, DEFAULT_MEASURE_WIDTH * zoom * 0.5);
@@ -334,7 +339,9 @@ pub fn render_page(
                     staff_color,
                 );
 
-                // Initial bar line, clef, key sig, time sig — only on first line
+                // Barra inicial: solo en el primer renglón (los siguientes la
+                // reciben del bucle de compases, que usa el estilo real del
+                // compás anterior — p. ej. una barra de repetición).
                 if line_idx == 0 {
                     render_bar_line(
                         painter,
@@ -344,18 +351,23 @@ pub fn render_page(
                         BarStyle::Regular,
                         staff_color,
                     );
+                }
 
-                    let (glyph_scale, fine_offset) = get_clef_config(sheet, staff.clef);
-                    render_clef(
-                        painter,
-                        egui::Pos2::new(clef_x, staff_top_y),
-                        staff.clef,
-                        line_spacing,
-                        sheet.clef_color(style.dark_mode),
-                        glyph_scale,
-                        fine_offset,
-                    );
+                // Clave: se repite al inicio de cada renglón (convención de
+                // grabado estándar), a diferencia de la armadura y el compás
+                // que solo van en el primero.
+                let (glyph_scale, fine_offset) = get_clef_config(sheet, staff.clef);
+                render_clef(
+                    painter,
+                    egui::Pos2::new(clef_x, staff_top_y),
+                    staff.clef,
+                    line_spacing,
+                    sheet.clef_color(style.dark_mode),
+                    glyph_scale,
+                    fine_offset,
+                );
 
+                if line_idx == 0 {
                     if let Some(first_m) = staff.measures.first() {
                         let key_x = clef_x + CLEF_WIDTH * zoom;
                         render_key_signature(
@@ -384,7 +396,11 @@ pub fn render_page(
                 }
 
                 // Compute left-aligned widths: last measure stretches to fill line
-                let line_available = if line_idx == 0 { measure_usable_width } else { measure_usable_full };
+                let line_available = if line_idx == 0 {
+                    measure_usable_width
+                } else {
+                    measure_usable_continuation
+                };
                 let line_widths = compute_measure_widths(
                     line_measures,
                     line_available,
@@ -393,7 +409,11 @@ pub fn render_page(
                     line_spacing,
                 );
 
-                let measures_x = if line_idx == 0 { measures_x_first } else { left_x_bar };
+                let measures_x = if line_idx == 0 {
+                    measures_x_first
+                } else {
+                    clef_x + CLEF_WIDTH * zoom
+                };
                 let staff_origin =
                     egui::Pos2::new(measures_x, staff_top_y + line_spacing * 2.0);
                 let mut measure_x = measures_x;
@@ -404,12 +424,14 @@ pub fn render_page(
 
                     // Bar line: draw if not the first measure overall
                     // At line breaks, this draws the separator between the last measure
-                    // of the previous line and the first measure of this line
+                    // of the previous line and the first measure of this line — before
+                    // the clef, not before the shifted start of measure content.
                     if actual_idx > 0 {
                         let prev_measure = &staff.measures[actual_idx - 1];
+                        let bar_x = if local_idx == 0 { left_x_bar } else { measure_x };
                         render_bar_line(
                             painter,
-                            measure_x,
+                            bar_x,
                             staff_top_y,
                             line_spacing,
                             prev_measure.barline.style,

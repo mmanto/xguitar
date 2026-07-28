@@ -23,9 +23,9 @@ pub use notation::{
     TimeSignatureStyle, Tremolo, TuningStep, Tuplet, TupletShow, Wedge, WedgeKind,
 };
 pub use render::{
-    PAGE_GAP, Page, PageLayout, RenderStyle, STAFF_LINE_SPACING, ScoreStylesheet, compute_pages,
-    render_clef, render_measure_elements, render_notehead, render_page, render_pages, render_score,
-    render_staff_lines, score_total_height,
+    BASE_SCALE, PAGE_GAP, Page, PageLayout, RenderStyle, STAFF_LINE_SPACING, ScoreStylesheet,
+    compute_pages, render_clef, render_measure_elements, render_notehead, render_page,
+    render_pages, render_score, render_staff_lines, score_total_height,
 };
 
 // ── WASM entry point ──────────────────────────────────────────────────────

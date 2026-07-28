@@ -108,6 +108,10 @@ Versionado semántico: `MAJOR.MINOR.PATCH`.
   - Test: parser assertion `direction_and_lyric_parsed`
 - Quiebre automático de compases en múltiples líneas cuando exceden el ancho disponible de página
 - Estiramiento proporcional de compases por línea para llenar el ancho completo del pentagrama
+- Repetición de la clave al inicio de cada renglón cuando un pentagrama se parte en varias líneas (convención de grabado estándar)
+
+### Changed
+- Calibrado el 100% de zoom para que coincida visualmente con partituras bien grabadas (comparado contra un PDF de referencia): antes había que subir a ~220% para lograr ese resultado. Zoom por defecto de un documento nuevo: 1.0 (antes 1.30). Ver ADR-007 en `docs/dev/DECISIONS.md`.
 
 ## Categorías de cambios
 

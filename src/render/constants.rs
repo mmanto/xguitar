@@ -42,3 +42,19 @@ pub const INITIAL_BAR_GAP: f32 = 8.0;
 
 /// Ancho reservado para la métrica de compás después de la clave.
 pub const TIME_SIG_WIDTH: f32 = 28.0;
+
+/// Factor de escala base aplicado al zoom del documento antes de renderizar.
+///
+/// egui trabaja en puntos lógicos (independientes de resolución) y no hay
+/// forma portable de consultar la densidad física real de la pantalla — lo
+/// único disponible (`native_pixels_per_point`) refleja la preferencia de
+/// escala de UI del sistema operativo, no el tamaño físico del panel, y ya
+/// es aplicado internamente por egui al rasterizar (aplicarlo de nuevo acá
+/// sería doble-escalar). Un 100% "verdadero" en mm de hoja A4 no es
+/// alcanzable de forma portable (ver ADR-007), así que en vez de eso este
+/// factor calibra el 100% para que se vea como una partitura bien grabada
+/// al comparar contra un PDF de referencia. Se aplica una sola vez, en el
+/// punto donde se lee el zoom del documento (`app.rs`), para que cubra por
+/// igual la geometría de notación y el texto de encabezado (título,
+/// compositor, tempo) definido por el stylesheet.
+pub const BASE_SCALE: f32 = 2.2;

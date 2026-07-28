@@ -29,7 +29,7 @@ pub use attachment_render::{
 };
 pub use beam::{BeamGroup, compute_beams};
 pub use clef_render::render_clef;
-pub use constants::{INITIAL_BAR_GAP, PAGE_GAP, STAFF_LINE_SPACING};
+pub use constants::{BASE_SCALE, INITIAL_BAR_GAP, PAGE_GAP, STAFF_LINE_SPACING};
 pub use direction_render::render_direction;
 pub use key_render::render_key_signature;
 pub use layout::{

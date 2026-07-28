@@ -174,3 +174,29 @@ Opción 3. Está implementada en `src/render/layout.rs`:
 - Las constantes `WIDTH_SHAPE_MIN`/`WIDTH_SHAPE_SCALE` (`render/layout.rs`) fueron calibradas visualmente contra el PDF de referencia con `test-data/simple.musicxml.xml`; pueden necesitar reajuste con partituras de contenido rítmico más variado.
 - `MultipleRest` no participa del modelo de duración (ancho fijo, `element_width_shape` le asigna una forma constante) — no está parseado desde MusicXML actualmente, así que no hay caso de prueba real que lo ejercite.
 - El campo `divisions` de `Measure` (ver más abajo en este documento el fix del bug de beaming) sigue siendo necesario para el agrupado de barras, pero el espaciado horizontal ya no depende de él — usa `NoteFigure::quarter_fraction`, una proporción fija por tipo de figura.
+
+---
+
+## ADR-007: BASE_SCALE para calibrar el 100% de zoom
+
+**Estado:** Aceptado
+**Fecha:** 2026-07-28
+
+### Contexto
+Comparando el render contra el mismo PDF de referencia de ADR-006 (export de Guitar Pro de `test-data/simple.musicxml.xml`), la partitura solo se veía visualmente equivalente a ese PDF (a "100%" en el visor de PDF) cuando el zoom de la app llegaba a ~220%. Se investigaron dos hipótesis:
+1. Que el 220% aportara más calidad de anti-aliasing/nitidez de trazo — descartada: un recorte del render al 100% escalado 2.2× con nearest-neighbor (sin suavizado) resultó **idéntico píxel a píxel** al render nativo a 220%, confirmando que `zoom` ya escala todo proporcionalmente y no hay diferencia de calidad, solo de tamaño.
+2. Que hubiera que auto-detectar el DPI real de pantalla (`ctx.native_pixels_per_point()`) y usarlo para corregir el 100% — descartada tras revisar el código fuente de egui (`context.rs`, egui 0.35.0): egui ya trabaja en puntos lógicos independientes de resolución, y aplica `pixels_per_point` internamente solo al rasterizar (nitidez de fuente/anti-aliasing), nunca para el tamaño de layout. Multiplicar manualmente por ese valor en la app duplica el escalado en vez de corregirlo. Además, `native_pixels_per_point` refleja la preferencia de escala de UI del sistema operativo (en una máquina de prueba real: KDE configuraba `Xft.dpi=120`, dando factor 1.25), no la densidad física real del panel (medida vía EDID con `xrandr`: ~189 PPI en esa misma máquina, que requeriría factor ~1.96 para tamaño físico exacto). No existe una forma portable (Linux/macOS/Windows/WASM) de consultar la densidad física real — el hack de EDID vía `xrandr` es específico de X11.
+
+### Opciones consideradas
+1. **Auto-detectar `native_pixels_per_point`** — portable y es lo que hacen navegadores/visores de PDF, pero solo refleja la preferencia de escala del SO, no el tamaño físico real; en la máquina de prueba solo hubiera cerrado ~25% de la brecha necesaria (1.25× de 2.2× objetivo), y depende de que cada usuario tenga su DE bien calibrado.
+2. **Multiplicar las constantes de tamaño en `constants.rs`** — simple pero incompleto: el texto de encabezado (título/compositor/tempo) viene del stylesheet y se escala solo por `zoom`, no por las constantes de notación, así que quedaba desproporcionadamente chico frente a la partitura ya agrandada.
+3. **`BASE_SCALE` aplicado una sola vez sobre `zoom` en el punto de renderizado (`app.rs`)** — cubre por igual la geometría de notación y el encabezado porque ambos derivan del mismo `zoom` en ese punto. Valor fijo (2.2), determinístico en cualquier máquina/plataforma.
+
+### Decisión
+Opción 3. `BASE_SCALE: f32 = 2.2` (`render/constants.rs`) se multiplica por el `zoom` del documento en el único lugar donde se lee para renderizar (`app.rs`, dentro del panel central), produciendo `render_zoom`. El zoom "lógico" que ve y controla el usuario (dropdown, atajos de teclado, persistencia de sesión) no cambia de significado — sigue siendo 100% = "tamaño por defecto". El zoom por defecto de un documento nuevo bajó de 1.30 a 1.0, ya que con `BASE_SCALE` un zoom lógico de 1.0 ya reproduce el resultado visual que antes requería 2.2 (220%).
+
+### Consecuencias
+- El "100%" de esta app es una calibración visual contra un PDF de referencia, no una promesa de tamaño físico exacto de hoja A4 — ninguna app cross-platform puede prometer eso sin un paso de calibración manual del usuario (regla en pantalla), que está fuera de alcance.
+- Si en el futuro se agrega un paso de calibración manual (ej. "ajustá esta regla a 10 cm reales"), debería reemplazar o combinarse con `BASE_SCALE`, no apilarse ciegamente.
+- Cambiar `BASE_SCALE` es un solo número en `constants.rs`; recalibrar contra un nuevo PDF de referencia solo requiere ajustar ese valor.
+- La sesión persistida (`session.json`) solo guarda rutas de archivo, no el zoom por documento (`restore_session` siempre crea `Document`s con el zoom por defecto) — no hay estado viejo de zoom que migrar.
