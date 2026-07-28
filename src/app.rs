@@ -45,6 +45,7 @@ impl Document {
                             barline: Barline::default(),
                             ending: None,
                             directions: vec![],
+                            divisions: 1,
                         }],
                         name: String::new(),
                         abbreviation: String::new(),
@@ -281,6 +282,7 @@ impl MGuitarApp {
                 barline: Barline::default(),
                 ending: None,
                 directions: vec![],
+                divisions: 1,
             });
         }
         let last = staff.measures.last_mut().unwrap();
@@ -436,6 +438,22 @@ impl eframe::App for MGuitarApp {
                                 } else {
                                     egui::Visuals::light()
                                 });
+                            }
+                            if !self.documents.is_empty() {
+                                let mut zoom_pct =
+                                    (self.documents[self.active_doc].zoom * 100.0) as i32;
+                                if ui
+                                    .add(
+                                        egui::DragValue::new(&mut zoom_pct)
+                                            .range(25..=400)
+                                            .suffix("%")
+                                            .speed(5),
+                                    )
+                                    .changed()
+                                {
+                                    self.documents[self.active_doc].zoom =
+                                        (zoom_pct as f32 / 100.0).clamp(0.25, 4.0);
+                                }
                             }
                             if !self.stylesheets.is_empty() {
                                 egui::ComboBox::from_id_salt("stylesheet")
@@ -600,7 +618,7 @@ impl eframe::App for MGuitarApp {
                     + sheet.header.header_staff_gap)
                     * zoom;
                 let layout =
-                    compute_pages(&self.documents[active].score, zoom, 4, header_height);
+                    compute_pages(&self.documents[active].score, zoom, header_height);
                 egui::ScrollArea::vertical()
                     .auto_shrink([false; 2])
                     .show(ui, |ui| {

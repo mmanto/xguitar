@@ -167,4 +167,45 @@ mod tests {
         assert_eq!(groups[1].end_idx, 2);
         assert_eq!(groups[1].level, 1);
     }
+
+    #[test]
+    fn sixty_fourths_use_real_divisions_not_denominator() {
+        // 16 semifusas (SixtyFourth) con divisions=16 (real, heredado de <divisions>16</divisions>)
+        // forman un único pulso de negra (16 unidades) → un solo grupo de beam por nivel.
+        //
+        // Antes del fix, `score.rs` pasaba `time_signature.denominator` (4, de 4/4) en vez del
+        // `divisions` real del compás, lo que fragmentaba este mismo pulso en 4 grupos falsos
+        // de 4 notas — comportamiento inconsistente entre compases con el mismo contenido rítmico.
+        let elements: Vec<MeasureElement> = (0..16)
+            .map(|_| {
+                MeasureElement::Note(Note {
+                    figure: NoteFigure::SixtyFourth,
+                    ..Default::default()
+                })
+            })
+            .collect();
+
+        let correct = compute_beams(&elements, 16);
+        let start_end: Vec<(usize, usize)> =
+            correct.iter().map(|g| (g.start_idx, g.end_idx)).collect();
+        assert!(
+            start_end.iter().all(|&(s, e)| s == 0 && e == 15),
+            "divisions=16: 16 semifusas forman un solo grupo por nivel, got {start_end:?}"
+        );
+
+        // El bug reproducido: usar el denominador (4) en vez de divisions fragmenta el mismo
+        // pulso en 4 grupos artificiales — confirma que el resultado difiere según el `divisions`
+        // pasado, que es exactamente la inconsistencia observada entre compases 6 y 7.
+        let buggy = compute_beams(&elements, 4);
+        let buggy_group_starts: Vec<usize> = buggy
+            .iter()
+            .filter(|g| g.level == 0)
+            .map(|g| g.start_idx)
+            .collect();
+        assert_eq!(
+            buggy_group_starts.len(),
+            4,
+            "divisions=4 (bug): fragmenta en 4 grupos artificiales de 4 notas"
+        );
+    }
 }

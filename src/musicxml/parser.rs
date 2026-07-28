@@ -34,6 +34,8 @@ fn parse_partwise(root: Node) -> Result<Score, MusicXmlError> {
     let composer = parse_composer(&root);
     let part_list = parse_part_list(&root);
     let staves = parse_parts(&root, &part_list)?;
+    let page_layout = parse_page_layout(&root);
+    let credits = parse_credits(&root, page_layout);
 
     let system = System {
         staves,
@@ -45,14 +47,165 @@ fn parse_partwise(root: Node) -> Result<Score, MusicXmlError> {
         title,
         composer,
         systems: vec![system],
-        credits: Vec::new(),
+        credits,
         scaling: None,
         part_list,
     })
 }
 
-// ── helpers ────────────────────────────────────────────────────────────────
+/// Lee `<defaults><page-layout><page-width>/<page-height>` (en tenths de
+/// MusicXML). Necesario para convertir las coordenadas absolutas de
+/// `<credit>` (también en tenths) a fracciones de página.
+fn parse_page_layout(root: &Node) -> Option<(f32, f32)> {
+    let defaults = root.children().find(|n| n.has_tag_name("defaults"))?;
+    let page_layout = defaults
+        .children()
+        .find(|n| n.has_tag_name("page-layout"))?;
+    let width: f32 = first_child_text(&page_layout, "page-width")?.parse().ok()?;
+    let height: f32 = first_child_text(&page_layout, "page-height")?
+        .parse()
+        .ok()?;
+    Some((width, height))
+}
 
+/// Parsea los `<credit>` de nivel de partitura (título, compositor, y
+/// créditos adicionales como "Music by X"). Sin `page_wh_tenths` no hay
+/// espacio de coordenadas confiable para posicionarlos, así que se omiten
+/// en vez de adivinar.
+fn parse_credits(root: &Node, page_wh_tenths: Option<(f32, f32)>) -> Vec<crate::notation::Credit> {
+    let Some((page_w, page_h)) = page_wh_tenths else {
+        return Vec::new();
+    };
+    if page_w <= 0.0 || page_h <= 0.0 {
+        return Vec::new();
+    }
+
+    let mut credits = Vec::new();
+    for credit_node in root.children().filter(|n| n.has_tag_name("credit")) {
+        let Some(words_node) = credit_node
+            .children()
+            .find(|n| n.has_tag_name("credit-words"))
+        else {
+            continue;
+        };
+        let Some(text) = words_node.text().map(|s| s.trim().to_string()) else {
+            continue;
+        };
+        if text.is_empty() {
+            continue;
+        }
+        let default_x: f32 = words_node
+            .attribute("default-x")
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(0.0);
+        let default_y: f32 = words_node
+            .attribute("default-y")
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(0.0);
+        let justify = match words_node.attribute("justify") {
+            Some("center") => crate::notation::CreditJustify::Center,
+            Some("right") => crate::notation::CreditJustify::Right,
+            _ => crate::notation::CreditJustify::Left,
+        };
+        let page: u8 = credit_node
+            .attribute("page")
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(1);
+
+        credits.push(crate::notation::Credit {
+            page,
+            kind: crate::notation::CreditKind::Words(text),
+            default_x: (default_x / page_w).clamp(0.0, 1.0),
+            default_y: (default_y / page_h).clamp(0.0, 1.0),
+            justify,
+        });
+    }
+    credits
+}
+
+fn parse_parts(root: &Node, part_list: &PartList) -> Result<Vec<Staff>, MusicXmlError> {
+    let mut staves = Vec::new();
+    for part in root.children().filter(|n| n.has_tag_name("part")) {
+        let part_id = part.attribute("id").unwrap_or("");
+        let part_info = part_list.parts.iter().find(|p| p.id == part_id);
+        staves.push(parse_part(&part, part_info)?);
+    }
+    Ok(staves)
+}
+
+fn parse_part(part: &Node, part_info: Option<&PartInfo>) -> Result<Staff, MusicXmlError> {
+    let mut measures = Vec::new();
+    let mut current_clef = Clef::Treble;
+    let mut current_key = KeySignature::default();
+    let mut current_time = TimeSignature {
+        numerator: 4,
+        denominator: 4,
+        style: TimeSignatureStyle::Numeric,
+    };
+    let mut current_octave_shift: i8 = 0;
+    let mut current_divisions: u32 = 1;
+
+    let name = part_info.map(|p| p.name.clone()).unwrap_or_default();
+    let abbreviation = part_info
+        .map(|p| p.abbreviation.clone())
+        .unwrap_or_else(|| name.clone());
+
+    for measure_node in part.children().filter(|n| n.has_tag_name("measure")) {
+        let measure_number = measure_node.attribute("number").unwrap_or("1").to_string();
+
+        // Process ALL <attributes> elements within the measure
+        for attrs in measure_node
+            .children()
+            .filter(|n| n.has_tag_name("attributes"))
+        {
+            if let Some(clef) = parse_clef(&attrs) {
+                current_clef = clef;
+            }
+            if let Some(time) = parse_time(&attrs) {
+                current_time = time;
+            }
+            if let Some(key) = parse_key(&attrs) {
+                current_key = key;
+            }
+            if let Some(shift) = parse_clef_octave_shift(&attrs) {
+                current_octave_shift = shift;
+            }
+            if let Some(divisions) = parse_divisions(&attrs) {
+                current_divisions = divisions;
+            }
+        }
+
+        let elements = parse_measure_elements(&measure_node, current_octave_shift)?;
+        let barline = parse_barline(&measure_node);
+
+        measures.push(Measure {
+            number: measure_number,
+            time_signature: current_time,
+            key_signature: current_key.clone(),
+            elements,
+            barline,
+            ending: None,
+            directions: parse_directions(&measure_node),
+            divisions: current_divisions,
+        });
+    }
+
+    // Last measure: use final double barline if not explicitly set
+    if let Some(last) = measures.last_mut() {
+        if last.barline.style == BarStyle::Regular || last.barline.style == BarStyle::None {
+            last.barline.style = BarStyle::LightHeavy;
+        }
+    }
+
+    Ok(Staff {
+        clef: current_clef,
+        line: current_clef.default_line(),
+        measures,
+        name,
+        abbreviation,
+        kind: crate::notation::StaffKind::Standard,
+    })
+}
 fn first_child_text(node: &Node, tag: &str) -> Option<String> {
     node.children()
         .find(|n| n.has_tag_name(tag))
@@ -140,85 +293,6 @@ fn parse_part_list(root: &Node) -> PartList {
 
     PartList { parts, groups }
 }
-fn parse_parts(root: &Node, part_list: &PartList) -> Result<Vec<Staff>, MusicXmlError> {
-    let mut staves = Vec::new();
-    for part in root.children().filter(|n| n.has_tag_name("part")) {
-        let part_id = part.attribute("id").unwrap_or("");
-        let part_info = part_list.parts.iter().find(|p| p.id == part_id);
-        staves.push(parse_part(&part, part_info)?);
-    }
-    Ok(staves)
-}
-
-fn parse_part(part: &Node, part_info: Option<&PartInfo>) -> Result<Staff, MusicXmlError> {
-    let mut measures = Vec::new();
-    let mut current_clef = Clef::Treble;
-    let mut current_key = KeySignature::default();
-    let mut current_time = TimeSignature {
-        numerator: 4,
-        denominator: 4,
-        style: TimeSignatureStyle::Numeric,
-    };
-    // clef-octave-change transposition for this staff (e.g., -1 for tenor G clef)
-    let mut current_octave_shift: i8 = 0;
-
-    let name = part_info.map(|p| p.name.clone()).unwrap_or_default();
-    let abbreviation = part_info
-        .map(|p| p.abbreviation.clone())
-        .unwrap_or_else(|| name.clone());
-
-    for measure_node in part.children().filter(|n| n.has_tag_name("measure")) {
-        let measure_number = measure_node.attribute("number").unwrap_or("1").to_string();
-
-        // Process ALL <attributes> elements within the measure
-        for attrs in measure_node
-            .children()
-            .filter(|n| n.has_tag_name("attributes"))
-        {
-            if let Some(clef) = parse_clef(&attrs) {
-                current_clef = clef;
-            }
-            if let Some(time) = parse_time(&attrs) {
-                current_time = time;
-            }
-            if let Some(key) = parse_key(&attrs) {
-                current_key = key;
-            }
-            if let Some(shift) = parse_clef_octave_shift(&attrs) {
-                current_octave_shift = shift;
-            }
-        }
-
-        let elements = parse_measure_elements(&measure_node, current_octave_shift)?;
-        let barline = parse_barline(&measure_node);
-
-        measures.push(Measure {
-            number: measure_number,
-            time_signature: current_time,
-            key_signature: current_key.clone(),
-            elements,
-            barline,
-            ending: None,
-            directions: parse_directions(&measure_node),
-        });
-    }
-
-    // Last measure: use final double barline if not explicitly set
-    if let Some(last) = measures.last_mut() {
-        if last.barline.style == BarStyle::Regular || last.barline.style == BarStyle::None {
-            last.barline.style = BarStyle::LightHeavy;
-        }
-    }
-
-    Ok(Staff {
-        clef: current_clef,
-        line: current_clef.default_line(),
-        measures,
-        name,
-        abbreviation,
-        kind: crate::notation::StaffKind::Standard,
-    })
-}
 
 fn parse_clef(attrs: &Node) -> Option<Clef> {
     let clef_node = attrs.children().find(|n| n.has_tag_name("clef"))?;
@@ -272,6 +346,12 @@ fn default_clef_line(sign: &str) -> i32 {
 fn parse_clef_octave_shift(attrs: &Node) -> Option<i8> {
     let clef_node = attrs.children().find(|n| n.has_tag_name("clef"))?;
     first_child_text(&clef_node, "clef-octave-change").and_then(|s| s.parse().ok())
+}
+
+/// Divisiones por negra (MusicXML `<divisions>`). Se acumula y hereda entre
+/// compases hasta que un nuevo valor aparece (spec de MusicXML).
+fn parse_divisions(attrs: &Node) -> Option<u32> {
+    first_child_text(attrs, "divisions").and_then(|s| s.parse().ok())
 }
 
 fn parse_time(attrs: &Node) -> Option<TimeSignature> {
@@ -503,112 +583,167 @@ fn parse_measure_elements(
     Ok(elements)
 }
 
-/// Parse all `<direction>` elements from a measure node.
+/// Parse all `<direction>` elements from a measure node, together with the
+/// index (into the final renderable `Measure::elements` sequence, same
+/// indexing as `element_offsets`) of the note/rest/chord each one precedes.
+///
+/// Mirrors `parse_measure_elements`'s note/chord-flush state machine (without
+/// building notes) so the counting stays in sync with the real element
+/// indices. `has_pending` tracks whether a held note or in-progress chord
+/// buffer exists that hasn't been flushed to `elements` yet — if so, a
+/// direction seen "now" points one slot further, at the *next* new note,
+/// since the currently-held note/chord will occupy the current slot once
+/// flushed.
 fn parse_directions(measure_node: &Node) -> Vec<crate::notation::Direction> {
     let mut dirs = Vec::new();
+    let mut elements_count: usize = 0;
+    let mut has_pending = false;
 
     for child in measure_node.children() {
-        if child.tag_name().name() != "direction" {
-            continue;
+        match child.tag_name().name() {
+            "note" => {
+                if first_child_text(&child, "voice").is_some_and(|v| v != "1") {
+                    continue;
+                }
+                let is_rest = child.children().any(|n| n.has_tag_name("rest"));
+                let has_chord = child.children().any(|n| n.has_tag_name("chord"));
+                let is_grace = child.children().any(|n| n.has_tag_name("grace"));
+                if is_grace {
+                    continue;
+                }
+                if is_rest {
+                    if has_pending {
+                        elements_count += 1;
+                    }
+                    elements_count += 1;
+                    has_pending = false;
+                } else if has_chord {
+                    has_pending = true;
+                } else if has_pending {
+                    elements_count += 1;
+                    has_pending = true; // the new note becomes the newly held one
+                } else {
+                    has_pending = true;
+                }
+            }
+            "backup" | "forward" => {
+                if has_pending {
+                    elements_count += 1;
+                }
+                elements_count += 1;
+                has_pending = false;
+            }
+            "direction" => {
+                let element_index = elements_count + usize::from(has_pending);
+                if let Some(dir) = parse_single_direction(&child) {
+                    dirs.push(crate::notation::Direction {
+                        element_index,
+                        ..dir
+                    });
+                }
+            }
+            _ => {}
         }
-
-        let placement = child
-            .attribute("placement")
-            .map(|p| match p {
-                "above" => crate::notation::Placement::Above,
-                _ => crate::notation::Placement::Below,
-            })
-            .unwrap_or(crate::notation::Placement::Below);
-
-        let staff: u8 = child
-            .attribute("staff")
-            .and_then(|s| s.parse().ok())
-            .unwrap_or(1);
-
-        // Find <direction-type> child
-        let dtype = match child.children().find(|n| n.has_tag_name("direction-type")) {
-            Some(d) => d,
-            None => continue,
-        };
-
-        let kind = if let Some(dyn_node) = dtype.children().find(|n| n.has_tag_name("dynamics")) {
-            let marks: Vec<crate::notation::DynamicMark> = dyn_node
-                .children()
-                .filter_map(|n| parse_dynamic_mark(n.tag_name().name()))
-                .collect();
-            if marks.is_empty() {
-                continue;
-            }
-            crate::notation::DirectionKind::Dynamics(marks)
-        } else if let Some(w_node) = dtype.children().find(|n| n.has_tag_name("wedge")) {
-            let wedge_type = w_node.attribute("type").unwrap_or("crescendo");
-            // WedgeKind has no Stop variant; skip stop wedges
-            if wedge_type == "stop" {
-                continue;
-            }
-            let niente = w_node.attribute("niente").is_some_and(|v| v == "yes");
-            let kind = if wedge_type == "diminuendo" {
-                crate::notation::WedgeKind::Diminuendo
-            } else {
-                crate::notation::WedgeKind::Crescendo
-            };
-            crate::notation::DirectionKind::Wedge(crate::notation::Wedge {
-                kind,
-                niente,
-                spread: 0.0,
-            })
-        } else if let Some(w_node) = dtype.children().find(|n| n.has_tag_name("words")) {
-            let text = w_node.text().unwrap_or_default().to_string();
-            crate::notation::DirectionKind::Words(text)
-        } else if let Some(r_node) = dtype.children().find(|n| n.has_tag_name("rehearsal")) {
-            let text = r_node.text().unwrap_or_default().to_string();
-            crate::notation::DirectionKind::Rehearsal(text)
-        } else if let Some(m_node) = dtype.children().find(|n| n.has_tag_name("metronome")) {
-            // beat-unit: "quarter", "eighth", "half", etc. → NoteFigure
-            let beat_unit = first_child_text(&m_node, "beat-unit")
-                .map(|s| parse_beat_unit(&s))
-                .unwrap_or(crate::notation::NoteFigure::Quarter);
-            let per_minute: u16 = first_child_text(&m_node, "per-minute")
-                .and_then(|s| s.parse().ok())
-                .unwrap_or(120);
-            let parentheses = m_node.attribute("parentheses").is_some_and(|v| v == "yes");
-            crate::notation::DirectionKind::Metronome(crate::notation::Metronome {
-                beat_unit,
-                per_minute,
-                parentheses,
-            })
-        } else if let Some(o_node) = dtype.children().find(|n| n.has_tag_name("octave-shift")) {
-            let size: u8 = o_node
-                .attribute("size")
-                .and_then(|s| s.parse().ok())
-                .unwrap_or(8);
-            let kind = match o_node.attribute("type") {
-                Some("down") => crate::notation::OctaveShiftKind::Down,
-                Some("stop") => crate::notation::OctaveShiftKind::Stop,
-                _ => crate::notation::OctaveShiftKind::Up,
-            };
-            crate::notation::DirectionKind::OctaveShift(crate::notation::OctaveShift { size, kind })
-        } else if let Some(p_node) = dtype.children().find(|n| n.has_tag_name("pedal")) {
-            let kind = match p_node.attribute("type") {
-                Some("stop") => crate::notation::PedalKind::Stop,
-                Some("change") => crate::notation::PedalKind::Change,
-                _ => crate::notation::PedalKind::Start,
-            };
-            let line = p_node.attribute("line").is_some_and(|v| v == "yes");
-            crate::notation::DirectionKind::Pedal(crate::notation::Pedal { kind, line })
-        } else {
-            // Dashes, Bracket, or unrecognized — skip
-            continue;
-        };
-
-        dirs.push(crate::notation::Direction {
-            placement,
-            staff,
-            kind,
-        });
     }
 
     dirs
+}
+
+/// Parse one `<direction>` node into a `Direction` (with `element_index: 0`,
+/// filled in by the caller — see `parse_directions`).
+fn parse_single_direction(child: &Node) -> Option<crate::notation::Direction> {
+    let placement = child
+        .attribute("placement")
+        .map(|p| match p {
+            "above" => crate::notation::Placement::Above,
+            _ => crate::notation::Placement::Below,
+        })
+        .unwrap_or(crate::notation::Placement::Below);
+
+    let staff: u8 = child
+        .attribute("staff")
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(1);
+
+    // Find <direction-type> child
+    let dtype = child
+        .children()
+        .find(|n| n.has_tag_name("direction-type"))?;
+
+    let kind = if let Some(dyn_node) = dtype.children().find(|n| n.has_tag_name("dynamics")) {
+        let marks: Vec<crate::notation::DynamicMark> = dyn_node
+            .children()
+            .filter_map(|n| parse_dynamic_mark(n.tag_name().name()))
+            .collect();
+        if marks.is_empty() {
+            return None;
+        }
+        crate::notation::DirectionKind::Dynamics(marks)
+    } else if let Some(w_node) = dtype.children().find(|n| n.has_tag_name("wedge")) {
+        let wedge_type = w_node.attribute("type").unwrap_or("crescendo");
+        // WedgeKind has no Stop variant; skip stop wedges
+        if wedge_type == "stop" {
+            return None;
+        }
+        let niente = w_node.attribute("niente").is_some_and(|v| v == "yes");
+        let kind = if wedge_type == "diminuendo" {
+            crate::notation::WedgeKind::Diminuendo
+        } else {
+            crate::notation::WedgeKind::Crescendo
+        };
+        crate::notation::DirectionKind::Wedge(crate::notation::Wedge {
+            kind,
+            niente,
+            spread: 0.0,
+        })
+    } else if let Some(w_node) = dtype.children().find(|n| n.has_tag_name("words")) {
+        let text = w_node.text().unwrap_or_default().to_string();
+        crate::notation::DirectionKind::Words(text)
+    } else if let Some(r_node) = dtype.children().find(|n| n.has_tag_name("rehearsal")) {
+        let text = r_node.text().unwrap_or_default().to_string();
+        crate::notation::DirectionKind::Rehearsal(text)
+    } else if let Some(m_node) = dtype.children().find(|n| n.has_tag_name("metronome")) {
+        // beat-unit: "quarter", "eighth", "half", etc. → NoteFigure
+        let beat_unit = first_child_text(&m_node, "beat-unit")
+            .map(|s| parse_beat_unit(&s))
+            .unwrap_or(crate::notation::NoteFigure::Quarter);
+        let per_minute: u16 = first_child_text(&m_node, "per-minute")
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(120);
+        let parentheses = m_node.attribute("parentheses").is_some_and(|v| v == "yes");
+        crate::notation::DirectionKind::Metronome(crate::notation::Metronome {
+            beat_unit,
+            per_minute,
+            parentheses,
+        })
+    } else if let Some(o_node) = dtype.children().find(|n| n.has_tag_name("octave-shift")) {
+        let size: u8 = o_node
+            .attribute("size")
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(8);
+        let kind = match o_node.attribute("type") {
+            Some("down") => crate::notation::OctaveShiftKind::Down,
+            Some("stop") => crate::notation::OctaveShiftKind::Stop,
+            _ => crate::notation::OctaveShiftKind::Up,
+        };
+        crate::notation::DirectionKind::OctaveShift(crate::notation::OctaveShift { size, kind })
+    } else {
+        let p_node = dtype.children().find(|n| n.has_tag_name("pedal"))?;
+        let kind = match p_node.attribute("type") {
+            Some("stop") => crate::notation::PedalKind::Stop,
+            Some("change") => crate::notation::PedalKind::Change,
+            _ => crate::notation::PedalKind::Start,
+        };
+        let line = p_node.attribute("line").is_some_and(|v| v == "yes");
+        crate::notation::DirectionKind::Pedal(crate::notation::Pedal { kind, line })
+    };
+
+    Some(crate::notation::Direction {
+        element_index: 0,
+        placement,
+        staff,
+        kind,
+    })
 }
 
 fn parse_beat_unit(s: &str) -> crate::notation::NoteFigure {
@@ -1619,5 +1754,154 @@ mod tests {
         assert_eq!(notes.len(), 1);
         assert!(!notes[0].lyrics.is_empty(), "lyric should be parsed");
         assert_eq!(notes[0].lyrics[0].text, "La");
+    }
+
+    #[test]
+    fn divisions_inherited_across_measures() {
+        let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
+<score-partwise version="4.0">
+  <part-list><score-part id="P1"><part-name>Test</part-name></score-part></part-list>
+  <part id="P1">
+    <measure number="1">
+      <attributes>
+        <divisions>16</divisions>
+        <clef><sign>G</sign><line>2</line></clef>
+      </attributes>
+      <note>
+        <pitch><step>C</step><octave>4</octave></pitch>
+        <duration>16</duration>
+        <type>quarter</type>
+      </note>
+    </measure>
+    <measure number="2">
+      <note>
+        <pitch><step>D</step><octave>4</octave></pitch>
+        <duration>16</duration>
+        <type>quarter</type>
+      </note>
+    </measure>
+  </part>
+</score-partwise>"#;
+
+        let score = parse_musicxml(xml).expect("should parse");
+        let staff = first_staff(&score);
+        assert_eq!(
+            staff.measures[0].divisions, 16,
+            "measure 1: explicit divisions"
+        );
+        assert_eq!(
+            staff.measures[1].divisions, 16,
+            "measure 2: divisions inherited from measure 1"
+        );
+    }
+
+    #[test]
+    fn directions_get_distinct_element_index() {
+        // "f" precede a la primer nota (index 0), "mf" precede a la segunda (index 1) —
+        // reproduce el caso del compás 4 de simple.musicxml.xml, donde antes ambas
+        // direcciones colapsaban en la misma posición X al renderizar.
+        let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
+<score-partwise version="4.0">
+  <part-list><score-part id="P1"><part-name>Test</part-name></score-part></part-list>
+  <part id="P1">
+    <measure number="1">
+      <attributes>
+        <divisions>1</divisions>
+        <clef><sign>G</sign><line>2</line></clef>
+      </attributes>
+      <direction>
+        <direction-type><dynamics><f/></dynamics></direction-type>
+      </direction>
+      <note>
+        <pitch><step>C</step><octave>4</octave></pitch>
+        <duration>1</duration>
+        <type>quarter</type>
+      </note>
+      <direction>
+        <direction-type><dynamics><mf/></dynamics></direction-type>
+      </direction>
+      <note>
+        <pitch><step>D</step><octave>4</octave></pitch>
+        <duration>1</duration>
+        <type>quarter</type>
+      </note>
+    </measure>
+  </part>
+</score-partwise>"#;
+
+        let score = parse_musicxml(xml).expect("should parse");
+        let measure = &first_staff(&score).measures[0];
+        assert_eq!(measure.directions.len(), 2);
+        assert_eq!(
+            measure.directions[0].element_index, 0,
+            "f precede a la nota 0"
+        );
+        assert_eq!(
+            measure.directions[1].element_index, 1,
+            "mf precede a la nota 1"
+        );
+        assert_ne!(
+            measure.directions[0].element_index, measure.directions[1].element_index,
+            "las dos direcciones deben apuntar a posiciones distintas"
+        );
+    }
+
+    #[test]
+    fn credits_parsed_with_page_layout() {
+        // Reproduce el fixture real: título centrado, compositor centrado, y un
+        // tercer crédito alineado a la derecha (ej. "Music by X") que antes se
+        // perdía por completo (credits: Vec::new() hardcodeado).
+        let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
+<score-partwise version="4.0">
+  <defaults>
+    <page-layout>
+      <page-width>1310</page-width>
+      <page-height>1850</page-height>
+    </page-layout>
+  </defaults>
+  <credit>
+    <credit-words default-x="655" default-y="1790" justify="center">Título</credit-words>
+  </credit>
+  <credit>
+    <credit-words default-x="1270" default-y="1616.9" justify="right">Music by X</credit-words>
+  </credit>
+  <part-list><score-part id="P1"><part-name>Test</part-name></score-part></part-list>
+  <part id="P1"><measure number="1"><note><rest/><duration>4</duration><type>whole</type></note></measure></part>
+</score-partwise>"#;
+
+        let score = parse_musicxml(xml).expect("should parse");
+        assert_eq!(score.credits.len(), 2);
+
+        let title_credit = &score.credits[0];
+        assert!(
+            matches!(title_credit.kind, crate::notation::CreditKind::Words(ref s) if s == "Título")
+        );
+        assert_eq!(title_credit.justify, crate::notation::CreditJustify::Center);
+        assert!((title_credit.default_x - 655.0 / 1310.0).abs() < 0.001);
+
+        let arranger_credit = &score.credits[1];
+        assert_eq!(
+            arranger_credit.justify,
+            crate::notation::CreditJustify::Right
+        );
+        assert!((arranger_credit.default_x - 1270.0 / 1310.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn credits_omitted_without_page_layout() {
+        let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
+<score-partwise version="4.0">
+  <credit>
+    <credit-words default-x="655" default-y="1790">Título</credit-words>
+  </credit>
+  <part-list><score-part id="P1"><part-name>Test</part-name></score-part></part-list>
+  <part id="P1"><measure number="1"><note><rest/><duration>4</duration><type>whole</type></note></measure></part>
+</score-partwise>"#;
+
+        let score = parse_musicxml(xml).expect("should parse");
+        assert!(
+            score.credits.is_empty(),
+            "sin page-layout no hay espacio de coordenadas confiable, no se debe adivinar"
+        );
     }
 }

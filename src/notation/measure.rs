@@ -39,4 +39,6 @@ pub struct Measure {
     pub ending: Option<Ending>,
     /// Direcciones a nivel de compás: dinámicas, texto, marcas de ensayo, etc.
     pub directions: Vec<Direction>,
+    /// Divisiones por negra (MusicXML `<divisions>`), heredado del último valor visto.
+    pub divisions: u32,
 }

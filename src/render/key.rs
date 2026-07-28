@@ -33,7 +33,7 @@ pub fn render_key_signature(
     };
 
     // Key sig accidentals are slightly smaller than regular accidentals
-    let font_size = line_spacing * 3.4; // ~85% of 4.0
+    let font_size = line_spacing * 2.4;
     let font_id = egui::FontId::new(font_size, egui::FontFamily::Name("Leland".into()));
 
     // Horizontal spacing between accidentals

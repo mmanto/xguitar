@@ -15,7 +15,7 @@ pub fn render_rest(
     color: egui::Color32,
 ) {
     let glyph = rest_glyph(rest.figure);
-    let font_size = line_spacing * 4.0;
+    let font_size = line_spacing * 2.8;
     let font_id = egui::FontId::new(font_size, egui::FontFamily::Name("Leland".into()));
 
     // Position: rests sit on the middle line (or as specified)

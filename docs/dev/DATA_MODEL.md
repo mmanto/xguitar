@@ -80,6 +80,7 @@ Enumeración: `Note(Note)`, `Rest(Rest)`, `Chord(Vec<Note>)`, `Backup(u32)`, `Fo
 | `elements` | `Vec<MeasureElement>` | Contenido del compás |
 | `barline` | `Barline` | Barra divisoria |
 | `ending` | `Option<Ending>` | Casilla de repetición |
+| `divisions` | `u32` | Divisiones por negra (MusicXML `<divisions>`), heredado del último valor visto en compases anteriores |
 
 ### `KeySignature` (Armadura)
 
@@ -125,6 +126,32 @@ Enumeración: `Note(Note)`, `Rest(Rest)`, `Chord(Vec<Note>)`, `Backup(u32)`, `Fo
 | `credits` | `Vec<Credit>` | Créditos de página |
 | `scaling` | `Option<Scaling>` | Escala MusicXML |
 | `part_list` | `PartList` | Partes e instrumentos |
+
+### `Credit` (Crédito de página)
+
+Créditos adicionales de MusicXML (`<credit><credit-words>`) — título, compositor y otros
+(p. ej. "Music by X" en la esquina superior derecha). Parseados en `parse_credits`
+(`src/musicxml/parser.rs`), usando `<defaults><page-layout>` para convertir las
+coordenadas absolutas en tenths de MusicXML a fracciones de página. Si el
+documento no declara `page-layout`, los créditos se omiten (no hay espacio de
+coordenadas confiable para posicionarlos).
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `page` | `u8` | Número de página (atributo `page` de `<credit>`) |
+| `kind` | `CreditKind` | `Words(String)` o `Symbol(char)` |
+| `default_x` | `f32` | Posición horizontal como fracción de página (0.0–1.0) |
+| `default_y` | `f32` | Posición vertical como fracción de página (0.0–1.0, crece hacia arriba como en MusicXML). Parseado pero **no usado** por el render — ver nota abajo. |
+| `justify` | `CreditJustify` | `Left` (default) \| `Center` \| `Right` — atributo `justify` de `<credit-words>` |
+
+El render (`render_page` en `src/render/page.rs`) dibuja los créditos que no
+coinciden en texto con `score.title`/`score.composer` centrados (ya mostrados
+con su propio layout), usando `default_x` para la posición horizontal y
+`justify` para la alineación. `default_y` se ignora deliberadamente: expresa
+una fracción de la altura de página *real* del documento fuente, que no
+coincide con la altura fija del bloque de header de este renderer (usar la
+fracción cruda hacía que créditos "extra" cayeran encima del pentagrama) — en
+cambio, se posicionan en la misma fila que el compositor.
 
 ---
 

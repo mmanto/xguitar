@@ -3,18 +3,18 @@ use m_guitar::parse_musicxml;
 
 #[test]
 fn parse_simple_musicxml() {
-    let xml = std::fs::read_to_string("test-data/simple.musicxml").expect("read test file");
+    let xml = std::fs::read_to_string("test-data/simple.musicxml.xml").expect("read test file");
     let score = parse_musicxml(&xml).expect("parse musicxml");
 
     assert_eq!(score.systems.len(), 1);
     let system = &score.systems[0];
     assert_eq!(system.staves.len(), 1);
     let staff = &system.staves[0];
-    assert_eq!(staff.measures.len(), 5, "5 measures");
+    assert_eq!(staff.measures.len(), 7, "7 measures");
 
     // Measure 1: 4 quarter notes + direction
     let m1 = &staff.measures[0];
-    assert_eq!(m1.directions.len(), 1, "measure 1: direction");
+    assert_eq!(m1.directions.len(), 2, "measure 1: directions");
     assert_eq!(m1.elements.len(), 4, "measure 1: 4 elements");
 
     // Measure 2: chord (3 notes → single Chord element)
@@ -156,3 +156,4 @@ fn parse_test_1_xml() {
         assert_eq!(note.figure, *fig, "m3 note {i} {:?}", fig);
     }
 }
+

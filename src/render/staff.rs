@@ -13,7 +13,7 @@ pub fn render_staff_lines(
     line_spacing: f32,
     color: egui::Color32,
 ) {
-    let stroke = egui::Stroke::new(1.0, color);
+    let stroke = egui::Stroke::new(line_spacing * 0.083, color);
     for i in 0..STAFF_LINE_COUNT {
         let y = top_left.y + i as f32 * line_spacing;
         painter.line_segment(
@@ -41,9 +41,9 @@ pub fn render_bar_line(
     color: egui::Color32,
 ) {
     let staff_h = line_spacing * (STAFF_LINE_COUNT as f32 - 1.0);
-    let thin = 1.0;
-    let thick = 3.0;
-    let gap = 2.0;
+    let thin = line_spacing * 0.083;
+    let thick = line_spacing * 0.25;
+    let gap = line_spacing * 0.167;
 
     match style {
         BarStyle::Regular | BarStyle::Short => {
@@ -230,6 +230,26 @@ pub fn render_ending_bracket(
         egui::Pos2::new(start_x + line_spacing * 0.5, bracket_y - line_spacing * 0.3),
         egui::Align2::LEFT_BOTTOM,
         &ending.number,
+        egui::FontId::new(font_size, egui::FontFamily::Proportional),
+        color,
+    );
+}
+
+/// Renderiza el número de compás en tamaño pequeño sobre el pentagrama.
+pub fn render_measure_number(
+    painter: &egui::Painter,
+    x: f32,
+    staff_top_y: f32,
+    line_spacing: f32,
+    number: &str,
+    color: egui::Color32,
+) {
+    let font_size = line_spacing * 0.65;
+    let y = staff_top_y - line_spacing * 0.3;
+    painter.text(
+        egui::Pos2::new(x + 2.0, y),
+        egui::Align2::LEFT_BOTTOM,
+        number,
         egui::FontId::new(font_size, egui::FontFamily::Proportional),
         color,
     );

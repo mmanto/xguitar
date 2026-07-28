@@ -1,6 +1,11 @@
-use super::constants::LEDGER_LINE_WIDTH;
 use crate::notation::{Accidental, NoteFigure};
 use eframe::egui;
+
+/// Tamaño de fuente de la cabeza de nota, en staff spaces (glifo SMuFL vía Leland).
+const NOTEHEAD_FONT_RATIO: f32 = 2.8;
+/// Mitad del ancho de una línea adicional (ledger line), en staff spaces —
+/// determina cuánto sobresale a cada lado de la cabeza de nota.
+const LEDGER_LINE_HALF_WIDTH_RATIO: f32 = 1.275;
 
 /// Dibuja una cabeza de nota con alteración y puntillos.
 ///
@@ -31,8 +36,7 @@ pub fn render_notehead(
     );
 
     // Render SMuFL glyph via Leland font.
-    // Font size = 4 staff spaces gives proper notehead-to-staff ratio.
-    let font_size = line_spacing * 4.0;
+    let font_size = line_spacing * NOTEHEAD_FONT_RATIO;
     let glyph_char = figure.notehead_glyph();
     // Center the notehead glyph on the staff position
     let glyph_center = egui::Pos2::new(note_x, note_y);
@@ -54,7 +58,7 @@ pub fn render_accidental(
     line_spacing: f32,
     color: egui::Color32,
 ) {
-    let font_size = line_spacing * 3.6;
+    let font_size = line_spacing * 2.5;
     let font_id = egui::FontId::new(font_size, egui::FontFamily::Name("Leland".into()));
     let acc_x = note_x - line_spacing * 1.2; // ~12pt left of notehead
 
@@ -114,9 +118,9 @@ fn render_ledger_lines(
     color: egui::Color32,
     line_spacing: f32,
 ) {
-    let stroke = egui::Stroke::new(1.0, color);
+    let stroke = egui::Stroke::new(line_spacing * 0.083, color);
     let half_spacing = line_spacing / 2.0;
-    let half_width = LEDGER_LINE_WIDTH / 2.0;
+    let half_width = line_spacing * LEDGER_LINE_HALF_WIDTH_RATIO;
     let center_x = note_x;
 
     let line_positions: Vec<i8> = if staff_position > 5 {

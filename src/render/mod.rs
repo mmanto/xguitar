@@ -32,7 +32,9 @@ pub use clef_render::render_clef;
 pub use constants::{INITIAL_BAR_GAP, PAGE_GAP, STAFF_LINE_SPACING};
 pub use direction_render::render_direction;
 pub use key_render::render_key_signature;
-pub use layout::compute_measure_widths;
+pub use layout::{
+    break_measures_into_lines, compute_measure_widths, element_offsets, measure_natural_width,
+};
 pub use lyric_render::render_lyrics;
 pub use note::{render_accidental, render_dots, render_notehead};
 pub use page::{Page, PageLayout, compute_pages, render_page, render_pages};
@@ -41,6 +43,6 @@ pub use score::{
     RenderStyle, render_cross_note_elements, render_measure_elements, render_score,
     render_time_signature, score_total_height,
 };
-pub use staff::{render_bar_line, render_staff_lines};
+pub use staff::{render_bar_line, render_measure_number, render_staff_lines};
 pub use stem::{render_flag, render_stem};
 pub use stylesheet::ScoreStylesheet;

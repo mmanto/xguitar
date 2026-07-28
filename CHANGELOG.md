@@ -106,6 +106,8 @@ Versionado semántico: `MAJOR.MINOR.PATCH`.
   - Render: anchos de compás proporcionales al contenido rítmico
   - Test data: `test-data/simple.musicxml` con direcciones, acordes, ligaduras y letra
   - Test: parser assertion `direction_and_lyric_parsed`
+- Quiebre automático de compases en múltiples líneas cuando exceden el ancho disponible de página
+- Estiramiento proporcional de compases por línea para llenar el ancho completo del pentagrama
 
 ## Categorías de cambios
 

@@ -122,4 +122,23 @@ impl NoteFigure {
             NoteFigure::HundredTwentyEighth => divisions / 32,
         }
     }
+
+    /// Duración relativa a una negra, como fracción exacta (redonda=4.0,
+    /// negra=1.0, corchea=0.5, ...). A diferencia de `duration_divisions`, no
+    /// depende de las `<divisions>` de MusicXML — es la proporción de
+    /// duración inherente a la figura. Usado para espaciado horizontal
+    /// proporcional a la duración (ver `render::layout`).
+    pub fn quarter_fraction(self) -> f32 {
+        match self {
+            NoteFigure::Breve => 8.0,
+            NoteFigure::Whole => 4.0,
+            NoteFigure::Half => 2.0,
+            NoteFigure::Quarter => 1.0,
+            NoteFigure::Eighth => 0.5,
+            NoteFigure::Sixteenth => 0.25,
+            NoteFigure::ThirtySecond => 0.125,
+            NoteFigure::SixtyFourth => 0.0625,
+            NoteFigure::HundredTwentyEighth => 0.03125,
+        }
+    }
 }

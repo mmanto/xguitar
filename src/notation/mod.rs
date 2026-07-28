@@ -41,7 +41,7 @@ pub use multirest::MultipleRest;
 pub use note::{Note, StemDirection};
 pub use pitch::{Accidental, Pitch, Step};
 pub use rest::Rest;
-pub use score::{Credit, CreditKind, PartGroup, PartInfo, PartList, Scaling, Score};
+pub use score::{Credit, CreditJustify, CreditKind, PartGroup, PartInfo, PartList, Scaling, Score};
 pub use staff::{Staff, StaffKind};
 pub use system::{GroupBracket, System};
 pub use tab::{

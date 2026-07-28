@@ -11,6 +11,9 @@ pub struct Direction {
     pub placement: Placement,
     pub staff: u8,
     pub kind: DirectionKind,
+    /// Índice del elemento renderable (misma indexación que
+    /// `render::element_offsets`) al que esta dirección precede/está anclada.
+    pub element_index: usize,
 }
 
 #[derive(Clone, Debug)]

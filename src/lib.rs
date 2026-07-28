@@ -12,15 +12,15 @@ pub use fonts::configure_fonts;
 pub use i18n::{I18n, Lang};
 pub use notation::{
     Accidental, Arpeggiate, ArpeggioDirection, Articulation, BarStyle, Barline, Bracket,
-    BracketKind, Clef, Credit, CreditKind, Dashes, DashesKind, Direction, DirectionKind,
-    DynamicMark, Ending, Fermata, FermataShape, Glissando, GlissandoKind, GraceNote, GroupBracket,
-    HarmonicKind, KeyMode, KeySignature, LineEnd, LineType, Lyric, Measure, MeasureElement,
-    MeasureStyle, Metronome, MultipleRest, Note, NoteAttachment, NoteFigure, OctaveShift,
-    OctaveShiftKind, Ornament, PartGroup, PartInfo, PartList, Pitch, Placement, RepeatDirection,
-    Rest, Scaling, Score, SlashNote, SlideKind, Slur, SlurKind, Staff, StaffKind, StemDirection,
-    Step, Syllabic, System, SystemDividers, SystemLayout, TabElement, TabMeasure, TabNote, TabRest,
-    TabTechnique, TablatureStaff, Technical, Tie, TieKind, TimeSignature, TimeSignatureStyle,
-    Tremolo, TuningStep, Tuplet, TupletShow, Wedge, WedgeKind,
+    BracketKind, Clef, Credit, CreditJustify, CreditKind, Dashes, DashesKind, Direction,
+    DirectionKind, DynamicMark, Ending, Fermata, FermataShape, Glissando, GlissandoKind, GraceNote,
+    GroupBracket, HarmonicKind, KeyMode, KeySignature, LineEnd, LineType, Lyric, Measure,
+    MeasureElement, MeasureStyle, Metronome, MultipleRest, Note, NoteAttachment, NoteFigure,
+    OctaveShift, OctaveShiftKind, Ornament, PartGroup, PartInfo, PartList, Pitch, Placement,
+    RepeatDirection, Rest, Scaling, Score, SlashNote, SlideKind, Slur, SlurKind, Staff, StaffKind,
+    StemDirection, Step, Syllabic, System, SystemDividers, SystemLayout, TabElement, TabMeasure,
+    TabNote, TabRest, TabTechnique, TablatureStaff, Technical, Tie, TieKind, TimeSignature,
+    TimeSignatureStyle, Tremolo, TuningStep, Tuplet, TupletShow, Wedge, WedgeKind,
 };
 pub use render::{
     PAGE_GAP, Page, PageLayout, RenderStyle, STAFF_LINE_SPACING, ScoreStylesheet, compute_pages,

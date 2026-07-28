@@ -148,9 +148,29 @@ Opción 1: páginas A4 virtuales. Es la experiencia estándar de software de not
 - `max_measures_per_line` está reservado para control futuro de layout horizontal
 ---
 
-## Próximos ADRs sugeridos
+## ADR-006: Espaciado proporcional a duración + justificación por sistema
 
-- ADR-005: Representación interna de notas y pentagramas (structs vs bitfields)
-- ADR-006: Estrategia de renderizado del pentagrama (egui painter vs OpenGL custom)
-- ADR-007: Formato de archivo para partituras (MusicXML vs formato propio vs MIDI)
-- ADR-008: Reproducción de audio (MIDI synth vs samples vs TFM)
+**Estado:** Aceptado
+**Fecha:** 2026-07-28
+
+### Contexto
+Comparando el render contra un PDF de referencia (export de Guitar Pro) del mismo archivo (`test-data/simple.musicxml.xml`), se detectó que el espaciado horizontal de notas era puramente por **cantidad de elementos** (`measure_natural_width` en `render/layout.rs`), ignorando la duración: una redonda y una corchea ocupaban el mismo ancho. Esto le daba al render un aspecto de "grilla de máquina de escribir" en vez de grabado musical. Además, `compute_measure_widths` solo estiraba el **último** compás de cada línea para llenar el espacio sobrante — no era un modelo de justificación real, así que el espaciado entre compases de una misma línea se veía desparejo. El síntoma más visible: los compases 6 y 7 del fixture (corridas largas de semifusas) se renderizaban extremadamente densos e ilegibles comparados con el PDF de referencia.
+
+### Opciones consideradas
+1. **Modelo de resortes ópticos completo (Gourlay)** — el estándar de la industria (Finale, Dorico), pero implica un sistema de "springs" con rigidez por elemento y un solver de optimización; complejidad desproporcionada para el tamaño actual del proyecto.
+2. **Ancho ideal logarítmico + estiramiento uniforme** — ancho de cada elemento como `base + escala * log2(duración/referencia)`, justificación estirando todos los compases de la línea proporcionalmente. Necesita una constante de "duración de referencia" arbitraria como ancla del logaritmo.
+3. **Ancho ideal con raíz cuadrada + estiramiento uniforme (elegida)** — mismo espíritu cóncavo que la opción logarítmica (duplicar la duración no duplica el ancho) pero sin necesitar una duración de referencia arbitraria: `ancho = line_spacing * (MIN + ESCALA * sqrt(duración_en_negras))`. Se ancla en que una negra dé el mismo ancho que el espaciado uniforme anterior (`line_spacing * 1.5`), así una partitura de solo negras se ve casi igual que antes.
+
+### Decisión
+Opción 3. Está implementada en `src/render/layout.rs`:
+- `element_width_shape`/`width_shape` calculan una forma adimensional de ancho por elemento según su duración (`NoteFigure::quarter_fraction`, nuevo método en `src/notation/figure.rs`, independiente de `divisions` de MusicXML).
+- `measure_natural_width` suma esas formas (× `line_spacing`) más un margen fijo y el extra por accidentales.
+- `compute_measure_widths` calcula los anchos naturales de todos los compases de una línea; si hay espacio sobrante, estira **todos** los compases por el mismo factor (no solo el último), clampeando a `max_width` y redistribuyendo el sobrante de los compases clampeados entre los que no lo están (dos pasadas). Sin espacio sobrante, mantiene el comportamiento de overflow anterior (ancho natural sin escalar).
+- `element_offsets` distribuye el ancho asignado a un compás entre sus elementos proporcionalmente a esa misma forma, centrando cada elemento en su porción — generaliza el modelo uniforme anterior (que era el caso particular de todas las formas iguales).
+- `break_measures_into_lines` no cambió: al llamar a `measure_natural_width` internamente, hereda el comportamiento consciente de duración sin necesitar modificaciones.
+
+### Consecuencias
+- Es un escalado proporcional uniforme dentro de cada compás, **no** un modelo de resortes ópticos real — no hay rigidez distinta por tipo de elemento ni justificación óptima global entre compases de distinto contenido. Suficiente para el objetivo actual (evitar el aspecto de grilla), pero un candidato futuro si se necesita paridad visual más fina con motores profesionales.
+- Las constantes `WIDTH_SHAPE_MIN`/`WIDTH_SHAPE_SCALE` (`render/layout.rs`) fueron calibradas visualmente contra el PDF de referencia con `test-data/simple.musicxml.xml`; pueden necesitar reajuste con partituras de contenido rítmico más variado.
+- `MultipleRest` no participa del modelo de duración (ancho fijo, `element_width_shape` le asigna una forma constante) — no está parseado desde MusicXML actualmente, así que no hay caso de prueba real que lo ejercite.
+- El campo `divisions` de `Measure` (ver más abajo en este documento el fix del bug de beaming) sigue siendo necesario para el agrupado de barras, pero el espaciado horizontal ya no depende de él — usa `NoteFigure::quarter_fraction`, una proporción fija por tipo de figura.

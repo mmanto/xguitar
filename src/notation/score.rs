@@ -16,14 +16,27 @@ pub struct Score {
 pub struct Credit {
     pub page: u8,
     pub kind: CreditKind,
+    /// Posición horizontal como fracción de página (0.0–1.0), no tenths de MusicXML.
     pub default_x: f32,
+    /// Posición vertical como fracción de página (0.0–1.0, crece hacia arriba
+    /// como en MusicXML), no tenths.
     pub default_y: f32,
+    pub justify: CreditJustify,
 }
 
 #[derive(Clone, Debug)]
 pub enum CreditKind {
     Words(String),
     Symbol(char),
+}
+
+/// Alineación horizontal de un crédito (atributo `justify` de MusicXML).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum CreditJustify {
+    #[default]
+    Left,
+    Center,
+    Right,
 }
 
 /// Escala de MusicXML (mm por tenth).

@@ -40,11 +40,11 @@ pub fn render_stem(
     };
 
     let stem_x = match direction {
-        StemDirection::Up => note_x + line_spacing * 0.55,
-        StemDirection::Down => note_x - line_spacing * 0.55,
+        StemDirection::Up => note_x + line_spacing * 0.40,
+        StemDirection::Down => note_x - line_spacing * 0.40,
     };
 
-    let stem_width = line_spacing * 0.12; // ~1.0pt at default spacing
+    let stem_width = line_spacing * 0.08;
     let stroke = egui::Stroke::new(stem_width, color);
     painter.line_segment(
         [
@@ -94,7 +94,7 @@ pub fn render_flag(
         StemDirection::Down => 0xE241,
     };
 
-    let font_size = line_spacing * 4.0;
+    let font_size = line_spacing * 2.8;
     let font_id = egui::FontId::new(font_size, egui::FontFamily::Name("Leland".into()));
 
     // Flags stack: each subsequent flag is 2 SMuFL codepoints higher

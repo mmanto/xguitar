@@ -9,8 +9,8 @@ use super::rest_render::render_rest;
 use super::stem::render_stem;
 use super::stylesheet::ScoreStylesheet;
 use super::{
-    render_bar_line, render_clef, render_direction, render_lyrics, render_notehead,
-    render_staff_lines,
+    break_measures_into_lines, element_offsets, render_bar_line, render_clef, render_direction,
+    render_lyrics, render_measure_number, render_notehead, render_staff_lines,
 };
 use crate::notation::{
     BarStyle, Clef, KeySignature, Measure, MeasureElement, NoteFigure, Placement, Score,
@@ -78,7 +78,7 @@ pub fn render_measure_elements(
 
     let line_spacing = style.line_spacing;
     let color = style.sheet.note_color(style.dark_mode);
-    let divisions = measure.time_signature.denominator as u32; // simplified: 1/4 = 1 division
+    let divisions = measure.divisions;
 
     // Compute beam groups
     let beams = compute_beams(elements, divisions);
@@ -119,25 +119,17 @@ pub fn render_measure_elements(
         })
         .collect();
 
-    // Count actual rendered items for spacing
-    let renderable_count = elements
-        .iter()
-        .filter(|e| !matches!(e, MeasureElement::Backup(_) | MeasureElement::Forward(_)))
-        .count();
-
-    if renderable_count == 0 {
+    let offsets = element_offsets(elements, measure_width);
+    if offsets.is_empty() {
         return;
     }
-
-    let mut render_idx: usize = 0;
 
     for (ei, elem) in elements.iter().enumerate() {
         match elem {
             MeasureElement::Backup(_) | MeasureElement::Forward(_) => continue,
 
             MeasureElement::Note(note) => {
-                let note_spacing = measure_width / renderable_count as f32;
-                let note_x = measure_x + note_spacing * (render_idx as f32 + 0.5);
+                let note_x = measure_x + offsets[ei];
                 let sp = note.pitch.staff_position(clef);
                 let note_y = staff_origin.y - sp as f32 * line_spacing / 2.0;
                 if let Some(acc) = note.accidental_override {
@@ -231,20 +223,15 @@ pub fn render_measure_elements(
                         color,
                     );
                 }
-
-                render_idx += 1;
             }
 
             MeasureElement::Rest(rest) => {
-                let note_spacing = measure_width / renderable_count as f32;
-                let rest_x = measure_x + note_spacing * (render_idx as f32 + 0.5);
+                let rest_x = measure_x + offsets[ei];
                 render_rest(painter, rest_x, staff_origin.y, rest, line_spacing, color);
-                render_idx += 1;
             }
 
             MeasureElement::Chord(notes) => {
-                let note_spacing = measure_width / renderable_count as f32;
-                let chord_x = measure_x + note_spacing * (render_idx as f32 + 0.5);
+                let chord_x = measure_x + offsets[ei];
 
                 // Find highest and lowest note
                 let mut positions: Vec<(i8, &crate::notation::Note)> = notes
@@ -344,8 +331,6 @@ pub fn render_measure_elements(
                         );
                     }
                 }
-
-                render_idx += 1;
             }
 
             MeasureElement::MultipleRest(mrest) => {
@@ -405,48 +390,31 @@ pub fn render_measure_elements(
 
     // Render beams
     for (bi, beam) in beams.iter().enumerate() {
-        let first_idx = beam.start_idx;
-        let last_idx = beam.end_idx;
+        let x1 = measure_x + offsets[beam.start_idx];
+        let x2 = measure_x + offsets[beam.end_idx];
 
-        let mut first_x: Option<f32> = None;
-        let mut last_x: Option<f32> = None;
-        let mut ri: usize = 0;
-
-        for (ei, elem) in elements.iter().enumerate() {
-            if matches!(elem, MeasureElement::Backup(_) | MeasureElement::Forward(_)) {
-                continue;
-            }
-            let note_spacing = measure_width / renderable_count as f32;
-            let x = measure_x + note_spacing * (ri as f32 + 0.5);
-
-            if ei == first_idx {
-                first_x = Some(x);
-            }
-            if ei == last_idx {
-                last_x = Some(x);
-            }
-            ri += 1;
-        }
-
-        if let (Some(x1), Some(x2)) = (first_x, last_x) {
-            // Use pre-computed beam Y and direction from beam_meta
-            let (beam_y, stem_x_offset) = beam_meta
-                .get(bi)
-                .map(|(_, _, d, y)| {
-                    let off = match d {
-                        StemDirection::Up => line_spacing * 0.55,
-                        StemDirection::Down => -line_spacing * 0.55,
-                    };
-                    (*y, off)
-                })
-                .unwrap_or((staff_origin.y - line_spacing * 3.5, 0.0));
-            let half_thickness = line_spacing * 0.25;
-            let beam_rect = egui::Rect::from_min_max(
-                egui::Pos2::new(x1 + stem_x_offset, beam_y - half_thickness),
-                egui::Pos2::new(x2 + stem_x_offset, beam_y + half_thickness),
-            );
-            painter.rect_filled(beam_rect, 0.0, color);
-        }
+        // Use pre-computed beam Y, offset per beam level for multi-beams
+        let (beam_y, stem_x_offset, dir) = beam_meta
+            .get(bi)
+            .map(|(_, _, d, y)| {
+                let off = match d {
+                    StemDirection::Up => line_spacing * 0.40,
+                    StemDirection::Down => -line_spacing * 0.40,
+                };
+                (*y, off, *d)
+            })
+            .unwrap_or((staff_origin.y - line_spacing * 3.5, 0.0, StemDirection::Up));
+        let level_offset = match dir {
+            StemDirection::Up => beam.level as f32 * line_spacing * 0.40,
+            StemDirection::Down => -(beam.level as f32) * line_spacing * 0.40,
+        };
+        let actual_beam_y = beam_y + level_offset;
+        let half_thickness = line_spacing * 0.16;
+        let beam_rect = egui::Rect::from_min_max(
+            egui::Pos2::new(x1 + stem_x_offset, actual_beam_y - half_thickness),
+            egui::Pos2::new(x2 + stem_x_offset, actual_beam_y + half_thickness),
+        );
+        painter.rect_filled(beam_rect, 0.0, color);
     }
 }
 
@@ -595,36 +563,20 @@ pub fn render_cross_note_elements(
     for (mi, measure) in measures.iter().enumerate() {
         let m_x = measure_xs[mi];
         let m_width = measure_widths[mi];
-        let renderable_count = measure
-            .elements
-            .iter()
-            .filter(|e| !matches!(e, MeasureElement::Backup(_) | MeasureElement::Forward(_)))
-            .count();
-        if renderable_count == 0 {
-            continue;
-        }
-        let note_spacing = m_width / renderable_count as f32;
-        let mut render_idx: usize = 0;
-        for elem in &measure.elements {
-            match elem {
-                MeasureElement::Backup(_) | MeasureElement::Forward(_) => continue,
-                MeasureElement::Note(note) => {
-                    if let Some(ref att) = note.attachments {
-                        let sp = note.pitch.staff_position(clef);
-                        let note_y = staff_origin.y - sp as f32 * half_spacing;
-                        let note_x = m_x + note_spacing * (render_idx as f32 + 0.5);
-                        notes.push(NotePos {
-                            x: note_x,
-                            y: note_y,
-                            staff_position: sp,
-                            attachments: att.clone(),
-                        });
-                    }
-                    render_idx += 1;
-                }
-                _ => {
-                    render_idx += 1;
-                }
+        let offsets = element_offsets(&measure.elements, m_width);
+        for (ei, elem) in measure.elements.iter().enumerate() {
+            if let MeasureElement::Note(note) = elem
+                && let Some(ref att) = note.attachments
+            {
+                let sp = note.pitch.staff_position(clef);
+                let note_y = staff_origin.y - sp as f32 * half_spacing;
+                let note_x = m_x + offsets[ei];
+                notes.push(NotePos {
+                    x: note_x,
+                    y: note_y,
+                    staff_position: sp,
+                    attachments: att.clone(),
+                });
             }
         }
     }
@@ -772,83 +724,18 @@ pub fn render_score(
 
     for system in &score.systems {
         for staff in &system.staves {
-            let staff_top_y = top_left.y + y_offset;
             let staff_color = style.sheet.staff_color(style.dark_mode);
             let bar_x = top_left.x + LEFT_MARGIN + system.left_margin;
             let clef_x = bar_x + INITIAL_BAR_GAP;
             let key_sig_width = if let Some(first_m) = staff.measures.first() {
-                // Estimate key sig width
                 let fifths_abs = first_m.key_signature.fifths.unsigned_abs() as f32;
                 line_spacing * 1.1 * fifths_abs + line_spacing * 0.5
             } else {
                 0.0
             };
             let time_x = clef_x + CLEF_WIDTH + key_sig_width;
-            let measures_x = time_x + TIME_SIG_WIDTH;
-            let staff_top = egui::Pos2::new(bar_x, staff_top_y);
+            let measures_x_first = time_x + TIME_SIG_WIDTH;
 
-            // Staff lines
-            render_staff_lines(painter, staff_top, max_width, line_spacing, staff_color);
-
-            // Initial bar line
-            render_bar_line(
-                painter,
-                bar_x,
-                staff_top_y,
-                line_spacing,
-                BarStyle::Regular,
-                staff_color,
-            );
-
-            // Clef
-            let clef_top = egui::Pos2::new(clef_x, staff_top_y);
-            let (glyph_scale, fine_offset) = get_clef_config(&style.sheet, staff.clef);
-            render_clef(
-                painter,
-                clef_top,
-                staff.clef,
-                line_spacing,
-                style.sheet.clef_color(style.dark_mode),
-                glyph_scale,
-                fine_offset,
-            );
-
-            // Key signature
-            if let Some(first_measure) = staff.measures.first() {
-                let key_x = clef_x + CLEF_WIDTH;
-                let _key_end_x = render_key_or_default(
-                    painter,
-                    first_measure,
-                    key_x,
-                    staff_top_y,
-                    line_spacing,
-                    staff.clef,
-                    staff_color,
-                    None,
-                );
-            }
-
-            // Time signature
-            if let Some(first_measure) = staff.measures.first() {
-                let ts = &first_measure.time_signature;
-                let ts_x = time_x + TIME_SIG_WIDTH * 0.5;
-                render_time_signature(
-                    painter,
-                    ts_x,
-                    staff_top_y,
-                    ts.numerator,
-                    ts.denominator,
-                    ts.style,
-                    line_spacing,
-                    staff_color,
-                );
-            }
-
-            // Staff origin (3rd line)
-            let staff_origin = egui::Pos2::new(measures_x, staff_top_y + line_spacing * 2.0);
-
-            // Render measures
-            let measure_start_x = measures_x;
             let measure_usable_width = max_width
                 - LEFT_MARGIN
                 - system.left_margin
@@ -857,152 +744,246 @@ pub fn render_score(
                 - key_sig_width
                 - TIME_SIG_WIDTH;
 
+            let measure_usable_full = max_width - LEFT_MARGIN - system.left_margin;
+
+            let lines =
+                break_measures_into_lines(&staff.measures, measure_usable_width, line_spacing, DEFAULT_MEASURE_WIDTH * 0.5);
+
             let mut prev_key: Option<&KeySignature> = None;
 
-            // Compute proportional measure widths
-            let measure_widths = {
-                // Use `super::layout::compute_measure_widths` or the imported one
-                // Since we're in render::score, use crate::render::layout
-                crate::render::layout::compute_measure_widths(
-                    &staff.measures,
-                    measure_usable_width,
+            for (line_idx, &(start, end)) in lines.iter().enumerate() {
+                let line_measures = &staff.measures[start..end];
+                let staff_top_y = top_left.y + y_offset;
+                let staff_top = egui::Pos2::new(bar_x, staff_top_y);
+
+                // Staff lines for this line segment
+                render_staff_lines(
+                    painter,
+                    staff_top,
+                    max_width,
+                    line_spacing,
+                    staff_color,
+                );
+
+                // First line only: initial bar, clef, key sig, time sig
+                if line_idx == 0 {
+                    render_bar_line(
+                        painter,
+                        bar_x,
+                        staff_top_y,
+                        line_spacing,
+                        BarStyle::Regular,
+                        staff_color,
+                    );
+
+                    let clef_top = egui::Pos2::new(clef_x, staff_top_y);
+                    let (glyph_scale, fine_offset) =
+                        get_clef_config(&style.sheet, staff.clef);
+                    render_clef(
+                        painter,
+                        clef_top,
+                        staff.clef,
+                        line_spacing,
+                        style.sheet.clef_color(style.dark_mode),
+                        glyph_scale,
+                        fine_offset,
+                    );
+
+                    if let Some(first_measure) = staff.measures.first() {
+                        let key_x = clef_x + CLEF_WIDTH;
+                        let _key_end_x = render_key_or_default(
+                            painter,
+                            first_measure,
+                            key_x,
+                            staff_top_y,
+                            line_spacing,
+                            staff.clef,
+                            staff_color,
+                            None,
+                        );
+
+                        let ts = &first_measure.time_signature;
+                        let ts_x = time_x + TIME_SIG_WIDTH * 0.5;
+                        render_time_signature(
+                            painter,
+                            ts_x,
+                            staff_top_y,
+                            ts.numerator,
+                            ts.denominator,
+                            ts.style,
+                            line_spacing,
+                            staff_color,
+                        );
+                    }
+                }
+
+                // Compute left-aligned widths: last measure stretches to fill line
+                let line_available = if line_idx == 0 { measure_usable_width } else { measure_usable_full };
+                let measure_widths = crate::render::layout::compute_measure_widths(
+                    line_measures,
+                    line_available,
                     DEFAULT_MEASURE_WIDTH * 0.5,
                     DEFAULT_MEASURE_WIDTH * 2.0,
-                )
-            };
+                    line_spacing,
+                );
 
-            let mut measure_x = measure_start_x;
-            for (mi, measure) in staff.measures.iter().enumerate() {
-                let measure_width = measure_widths[mi];
+                let measures_x = if line_idx == 0 { measures_x_first } else { bar_x };
+                let staff_origin =
+                    egui::Pos2::new(measures_x, staff_top_y + line_spacing * 2.0);
+                let measure_start_x = measures_x;
+                let mut measure_x = measure_start_x;
 
-                // Bar line between measures (with style from previous measure)
-                if mi > 0 {
-                    let prev_measure = &staff.measures[mi - 1];
-                    render_bar_line(
+                for (local_idx, measure) in line_measures.iter().enumerate() {
+                    let actual_idx = start + local_idx;
+                    let mw = measure_widths[local_idx];
+
+                    // Bar line between measures
+                    if actual_idx > 0 {
+                        let prev_measure = &staff.measures[actual_idx - 1];
+                        render_bar_line(
+                            painter,
+                            measure_x,
+                            staff_top_y,
+                            line_spacing,
+                            prev_measure.barline.style,
+                            staff_color,
+                        );
+                    }
+
+                    // Key signature change mid-staff
+                    if actual_idx > 0
+                        && let Some(pk) = prev_key
+                        && measure.key_signature.fifths != pk.fifths
+                    {
+                        let key_x = measure_x + line_spacing;
+                        render_key_or_default(
+                            painter,
+                            measure,
+                            key_x,
+                            staff_top_y,
+                            line_spacing,
+                            staff.clef,
+                            staff_color,
+                            Some(pk),
+                        );
+                    }
+
+                    // Número de compás
+                    render_measure_number(
                         painter,
                         measure_x,
                         staff_top_y,
                         line_spacing,
-                        prev_measure.barline.style,
+                        &measure.number,
                         staff_color,
                     );
-                }
 
-                // Key signature change mid-staff
-                if mi > 0 {
-                    if let Some(pk) = prev_key {
-                        if measure.key_signature.fifths != pk.fifths {
-                            let key_x = measure_x + line_spacing;
-                            render_key_or_default(
-                                painter,
-                                measure,
-                                key_x,
-                                staff_top_y,
-                                line_spacing,
-                                staff.clef,
-                                staff_color,
-                                Some(pk),
-                            );
+                    render_measure_elements(
+                        painter,
+                        measure,
+                        staff_origin,
+                        staff.clef,
+                        measure_x,
+                        mw,
+                        style,
+                    );
+
+                    // Directions
+                    let staff_end_x = measure_start_x + line_available;
+                    let direction_offsets = element_offsets(&measure.elements, mw);
+                    for direction in &measure.directions {
+                        if matches!(
+                            direction.kind,
+                            crate::notation::DirectionKind::Metronome(_)
+                        ) {
+                            continue;
                         }
+                        let dx = direction_offsets
+                            .get(direction.element_index)
+                            .copied()
+                            .unwrap_or(mw * 0.5);
+                        render_direction(
+                            painter,
+                            measure_x + dx,
+                            staff_top_y + line_spacing * 2.0,
+                            staff_end_x,
+                            direction,
+                            line_spacing,
+                            staff_color,
+                        );
                     }
+
+                    prev_key = Some(&measure.key_signature);
+                    measure_x += mw;
                 }
 
-                render_measure_elements(
+                // Barra de cierre al final de cada línea
+                let line_last = &staff.measures[end - 1];
+                render_bar_line(
                     painter,
-                    measure,
-                    staff_origin,
-                    staff.clef,
                     measure_x,
-                    measure_width,
-                    style,
+                    staff_top_y,
+                    line_spacing,
+                    line_last.barline.style,
+                    staff_color,
                 );
 
-                // Render staff-level directions below the staff.
-                // Metronome is rendered in the page header — skip it here.
-                let staff_end_x = measure_start_x + measure_usable_width;
-                for direction in &measure.directions {
-                    if matches!(direction.kind, crate::notation::DirectionKind::Metronome(_)) {
-                        continue;
+                // Lyrics for this line
+                let mut note_lyrics: Vec<(f32, &[crate::notation::Lyric])> = Vec::new();
+                {
+                    let mut mx = measure_start_x;
+                    for (local_idx, measure) in line_measures.iter().enumerate() {
+                        for elem in &measure.elements {
+                            let lyrics: &[crate::notation::Lyric] = match elem {
+                                crate::notation::MeasureElement::Note(n) => &n.lyrics,
+                                crate::notation::MeasureElement::Chord(notes)
+                                    if !notes.is_empty() =>
+                                {
+                                    &notes[0].lyrics
+                                }
+                                _ => continue,
+                            };
+                            if !lyrics.is_empty() {
+                                note_lyrics.push((mx, lyrics));
+                            }
+                        }
+                        mx += measure_widths[local_idx];
                     }
-                    render_direction(
+                }
+                if !note_lyrics.is_empty() {
+                    render_lyrics(
                         painter,
-                        measure_x + measure_width * 0.5,
-                        staff_top_y + line_spacing * 2.0,
-                        staff_end_x,
-                        direction,
+                        &note_lyrics,
+                        staff_top_y + line_spacing * 4.0,
                         line_spacing,
                         staff_color,
                     );
                 }
 
-                prev_key = Some(&measure.key_signature);
-                measure_x += measure_width;
-            }
-            // Final bar line
-            let end_x = measure_x;
-            if let Some(last_measure) = staff.measures.last() {
-                render_bar_line(
-                    painter,
-                    end_x,
-                    staff_top_y,
-                    line_spacing,
-                    last_measure.barline.style,
-                    staff_color,
-                );
-            }
-
-            // Render lyrics below the staff
-            let mut note_lyrics: Vec<(f32, &[crate::notation::Lyric])> = Vec::new();
-            {
-                let mut mx = measure_start_x;
-                for (mi, measure) in staff.measures.iter().enumerate() {
-                    for elem in &measure.elements {
-                        let lyrics: &[crate::notation::Lyric] = match elem {
-                            crate::notation::MeasureElement::Note(n) => &n.lyrics,
-                            crate::notation::MeasureElement::Chord(notes) if !notes.is_empty() => {
-                                &notes[0].lyrics
-                            }
-                            _ => continue,
-                        };
-                        if !lyrics.is_empty() {
-                            note_lyrics.push((mx, lyrics));
-                        }
+                // Cross-note elements for this line
+                {
+                    let mut m_xs: Vec<f32> = Vec::with_capacity(measure_widths.len());
+                    let mut mx = measure_start_x;
+                    for &w in &measure_widths {
+                        m_xs.push(mx);
+                        mx += w;
                     }
-                    mx += measure_widths[mi];
+                    let staff_origin =
+                        egui::Pos2::new(measure_start_x, staff_top_y + line_spacing * 2.0);
+                    render_cross_note_elements(
+                        painter,
+                        staff_origin,
+                        staff.clef,
+                        line_measures,
+                        &m_xs,
+                        &measure_widths,
+                        line_spacing,
+                        staff_color,
+                    );
                 }
-            }
-            if !note_lyrics.is_empty() {
-                render_lyrics(
-                    painter,
-                    &note_lyrics,
-                    staff_top_y + line_spacing * 4.0,
-                    line_spacing,
-                    staff_color,
-                );
-            }
-            // Render cross-note elements (ties, slurs, glissando)
-            {
-                let mut m_xs: Vec<f32> = Vec::with_capacity(measure_widths.len());
-                let mut mx = measure_start_x;
-                for &w in &measure_widths {
-                    m_xs.push(mx);
-                    mx += w;
-                }
-                let staff_origin =
-                    egui::Pos2::new(measure_start_x, staff_top_y + line_spacing * 2.0);
-                render_cross_note_elements(
-                    painter,
-                    staff_origin,
-                    staff.clef,
-                    &staff.measures,
-                    &m_xs,
-                    &measure_widths,
-                    line_spacing,
-                    staff_color,
-                );
-            }
 
-            y_offset += staff_height(line_spacing) + STAFF_PADDING;
+                y_offset += staff_height(line_spacing) + STAFF_PADDING;
+            }
         }
     }
 
