@@ -1,5 +1,6 @@
 use super::attachment::NoteAttachment;
 use super::lyric::Lyric;
+use super::figure::TimeModification;
 use super::{Accidental, NoteFigure, Pitch, Step};
 
 /// Dirección de la plica: hacia arriba o hacia abajo.
@@ -15,6 +16,8 @@ pub struct Note {
     pub pitch: Pitch,
     pub figure: NoteFigure,
     pub dotted: u8,
+    /// Agrupación irregular (tresillo, etc.) que modifica la duración sonante.
+    pub time_modification: Option<TimeModification>,
     pub accidental_override: Option<Accidental>,
     pub stem_direction: StemDirection,
     pub grace: bool,
@@ -34,6 +37,7 @@ impl Default for Note {
             },
             figure: NoteFigure::Quarter,
             dotted: 0,
+            time_modification: None,
             accidental_override: None,
             stem_direction: StemDirection::Up,
             grace: false,

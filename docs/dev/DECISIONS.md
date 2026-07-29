@@ -200,3 +200,70 @@ Opción 3. `BASE_SCALE: f32 = 2.2` (`render/constants.rs`) se multiplica por el 
 - Si en el futuro se agrega un paso de calibración manual (ej. "ajustá esta regla a 10 cm reales"), debería reemplazar o combinarse con `BASE_SCALE`, no apilarse ciegamente.
 - Cambiar `BASE_SCALE` es un solo número en `constants.rs`; recalibrar contra un nuevo PDF de referencia solo requiere ajustar ese valor.
 - La sesión persistida (`session.json`) solo guarda rutas de archivo, no el zoom por documento (`restore_session` siempre crea `Document`s con el zoom por defecto) — no hay estado viejo de zoom que migrar.
+
+---
+
+## ADR-008: Reproducción de audio vía sfizz (SFZ) + cpal, nativo únicamente
+
+**Estado:** Aceptado
+**Fecha:** 2026-07-29
+
+### Contexto
+xguitar necesitaba un secuenciador que reproduzca la partitura abierta. Se
+investigó un stack basado en `pipewire`, `sfizz` y el formato de instrumento
+SFZ, con un prototipo previo ya funcional (`guitarra-sfizz`, fuera del repo)
+que probaba FFI manual a `libsfizz` + `cpal` en esta misma máquina. El modelo
+de dominio (`NoteAttachment`: articulaciones, ligaduras, dinámicas) ya existía
+sin usarse para nada — un secuenciador es lo primero que le da uso real.
+
+### Opciones consideradas
+1. **Synth simple casero (osciladores)** — cero dependencias nativas, corre
+   igual en WASM, pero suena a "beep" de MIDI genérico; no aprovecha nada del
+   modelo de articulaciones/dinámicas ya parseado.
+2. **SoundFont2 + FluidSynth** — más popular que SFZ en el mundo MIDI, pero
+   SFZ es más simple de mapear a la API C mínima que necesitamos y produce
+   mejor calidad para instrumentos de cuerda con muchas variaciones de
+   articulación (velocity layers, round-robin, keyswitches).
+3. **`sfizz` (SFZ) + `cpal`** — sampler real, sonido de guitarra creíble;
+   `libsfizz` es una librería C++ nativa sin bindings Rust publicados en
+   crates.io, hay que escribir FFI mínima a mano (igual que hizo el
+   prototipo). No compila a `wasm32-unknown-unknown`.
+4. **Bindings directos a `pipewire`/`pipewire-sys`** — solo se justifican
+   para exponer la app como nodo JACK/PipeWire con puertos propios o ruteo
+   tipo DAW; no aporta nada para "reproducir la partitura abierta". `cpal`
+   ya resuelve el audio de forma transparente sobre PipeWire en sistemas que
+   lo usan (vía sus capas de compatibilidad ALSA/Pulse). Se intentó también
+   habilitar el feature `pipewire` de `cpal` (bindings nativos, sin pasar por
+   la capa de compatibilidad) pero requiere `bindgen`/`libclang` contra los
+   headers de PipeWire y falló en esta máquina — se descartó por el mismo
+   motivo: no hace falta para el caso de uso.
+
+### Decisión
+Opción 3: `sfizz` + `cpal`, con una interfaz `PlaybackEngine`
+(`src/audio/mod.rs`) que desacopla el secuenciador (`src/audio/sequencer.rs`,
+lógica de dominio pura, sin egui/cpal/sfizz) del motor de síntesis concreto.
+`SfizzEngine` (`src/audio/sfizz.rs`) implementa esa interfaz vía FFI mínima a
+la API C de sfizz, y queda detrás de `cfg(not(target_arch = "wasm32"))`
+igual que el resto de dependencias nativas del proyecto. La interfaz existe
+específicamente para poder enchufar más adelante un motor más simple (ej.
+osciladores en Rust puro) para el build WASM, sin tener que tocar el
+secuenciador ni la UI — pero ese motor wasm no se implementa todavía.
+
+### Consecuencias
+- Nueva dependencia de sistema: `sfizz` (con su `.pc` de pkg-config) — ver
+  `ENV.md`. No tiene paquete oficial en Debian/Ubuntu (hay que compilarlo).
+- La reproducción está ausente en el build web hasta que exista un motor
+  wasm; el botón Play se deshabilita ahí con un aviso.
+- El `.pc` de `sfizz` en algunas distros (Arch, paquete `sfizz-lib`) declara
+  mal el nombre de la librería (`Libs: -llibsfizz` en vez de `-lsfizz`) —
+  `build.rs` usa pkg-config solo para ubicar el `libdir` y linkea `sfizz` a
+  mano en vez de confiar en esa línea.
+- No se bundlea ningún instrumento `.sfz` en el repo (los samples pesan
+  decenas de MB) — la app busca uno en
+  `~/.config/m-guitar/instruments/default.sfz`; sin ese archivo, Play
+  funciona pero no suena y se muestra un aviso.
+- El secuenciador simplifica el tempo como constante dentro de cada compás
+  (aplica el `<metronome>` vigente al inicio del compás, no en su
+  `element_index` exacto) — cubre el caso común y evita la ambigüedad de
+  resolver cambios de tempo a mitad de compás combinados con múltiples voces
+  (`Backup`/`Forward`).

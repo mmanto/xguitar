@@ -177,6 +177,10 @@ fn parse_part(part: &Node, part_info: Option<&PartInfo>) -> Result<Staff, MusicX
 
         let elements = parse_measure_elements(&measure_node, current_octave_shift)?;
         let barline = parse_barline(&measure_node);
+        let system_break = measure_node
+            .children()
+            .filter(|n| n.has_tag_name("print"))
+            .any(|n| n.attribute("new-system") == Some("yes"));
 
         measures.push(Measure {
             number: measure_number,
@@ -187,6 +191,7 @@ fn parse_part(part: &Node, part_info: Option<&PartInfo>) -> Result<Staff, MusicX
             ending: None,
             directions: parse_directions(&measure_node),
             divisions: current_divisions,
+            system_break,
         });
     }
 
@@ -1100,6 +1105,7 @@ fn parse_note(note_node: &Node, octave_shift: i8) -> Option<Note> {
         },
         figure,
         dotted,
+        time_modification: parse_time_modification(note_node),
         accidental_override,
         stem_direction,
         grace,
@@ -1233,9 +1239,25 @@ fn parse_rest(note_node: &Node) -> Option<Rest> {
     Some(Rest {
         figure,
         dotted,
+        time_modification: parse_time_modification(note_node),
         display_step,
         display_octave,
         measure,
+    })
+}
+
+/// Parse `<time-modification><actual-notes>/<normal-notes>` — la duración
+/// sonante de tresillos/quintillos/etc. Distinto del `<notations><tuplet>`
+/// visual (corchete/número), que no afecta la duración.
+fn parse_time_modification(note_node: &Node) -> Option<crate::notation::figure::TimeModification> {
+    let tm_node = note_node
+        .children()
+        .find(|n| n.has_tag_name("time-modification"))?;
+    let actual_notes: u8 = first_child_text(&tm_node, "actual-notes")?.parse().ok()?;
+    let normal_notes: u8 = first_child_text(&tm_node, "normal-notes")?.parse().ok()?;
+    Some(crate::notation::figure::TimeModification {
+        actual_notes,
+        normal_notes,
     })
 }
 
@@ -1411,6 +1433,47 @@ mod tests {
         assert_eq!(notes[3].pitch.step, Step::F);
         assert_eq!(notes[3].pitch.accidental, Accidental::Flat);
         assert_eq!(notes[3].figure, NoteFigure::Half);
+    }
+
+    #[test]
+    fn print_new_system_marks_system_break() {
+        let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
+<score-partwise version="4.0">
+  <part-list><score-part id="P1"><part-name>Guitar</part-name></score-part></part-list>
+  <part id="P1">
+    <measure number="1">
+      <attributes>
+        <divisions>1</divisions>
+        <time><beats>4</beats><beat-type>4</beat-type></time>
+        <clef><sign>G</sign><line>2</line></clef>
+      </attributes>
+      <note><pitch><step>C</step><octave>4</octave></pitch><duration>4</duration><type>whole</type></note>
+    </measure>
+    <measure number="2">
+      <note><pitch><step>D</step><octave>4</octave></pitch><duration>4</duration><type>whole</type></note>
+    </measure>
+    <measure number="3">
+      <print new-system="yes"/>
+      <note><pitch><step>E</step><octave>4</octave></pitch><duration>4</duration><type>whole</type></note>
+    </measure>
+  </part>
+</score-partwise>"#;
+
+        let score = parse_musicxml(xml).expect("should parse successfully");
+        let measures = &first_staff(&score).measures;
+
+        assert!(
+            !measures[0].system_break,
+            "measure 1 has no <print> element"
+        );
+        assert!(
+            !measures[1].system_break,
+            "measure 2 has no <print> element"
+        );
+        assert!(
+            measures[2].system_break,
+            "measure 3 has <print new-system=\"yes\"/>"
+        );
     }
 
     #[test]
@@ -1603,6 +1666,45 @@ mod tests {
         let time = first_measure(&score).time_signature;
         assert_eq!(time.numerator, 4);
         assert_eq!(time.denominator, 4);
+    }
+
+    #[test]
+    fn time_modification_parses_triplet_ratio() {
+        let xml = r#"<?xml version="1.0" encoding="UTF-8"?>
+<score-partwise version="4.0">
+  <part-list><score-part id="P1"><part-name>Test</part-name></score-part></part-list>
+  <part id="P1">
+    <measure number="1">
+      <attributes>
+        <divisions>1</divisions>
+        <clef><sign>G</sign><line>2</line></clef>
+      </attributes>
+      <note>
+        <pitch><step>C</step><octave>4</octave></pitch>
+        <duration>1</duration>
+        <type>eighth</type>
+        <time-modification>
+          <actual-notes>3</actual-notes>
+          <normal-notes>2</normal-notes>
+        </time-modification>
+      </note>
+      <note>
+        <pitch><step>D</step><octave>4</octave></pitch>
+        <duration>1</duration>
+        <type>quarter</type>
+      </note>
+    </measure>
+  </part>
+</score-partwise>"#;
+
+        let score = parse_musicxml(xml).expect("should parse");
+        let notes = extract_notes(&first_measure(&score).elements);
+        let tm = notes[0]
+            .time_modification
+            .expect("triplet note should have time_modification");
+        assert_eq!(tm.actual_notes, 3);
+        assert_eq!(tm.normal_notes, 2);
+        assert!(notes[1].time_modification.is_none());
     }
 
     #[test]

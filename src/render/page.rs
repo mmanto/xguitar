@@ -179,6 +179,11 @@ pub fn render_page(
 
     // Page header: title, composer, tempo
     let header_cx = top_left.x + layout.page_width * 0.5;
+    // Left edge of the staves below (see `left_x` further down) — the tempo
+    // mark is anchored here instead of page-centered, since conventional
+    // engraving (and the MusicXML reference this was checked against) places
+    // it above the left margin of the first system, not centered on the page.
+    let left_x = top_left.x + PAGE_MARGIN_LEFT * zoom;
     let title_y = top_left.y + sheet.header.title_top_offset * zoom;
     let composer_y = title_y + (sheet.header.title_size + sheet.header.row_gap) * zoom;
     let tempo_y = composer_y + (sheet.header.composer_size + sheet.header.row_gap * 2.0) * zoom;
@@ -214,8 +219,8 @@ pub fn render_page(
         let glyph_size = line_spacing * 1.6;
         let text = format!("{} = {}", note_char, metro.per_minute);
         painter.text(
-            egui::Pos2::new(header_cx, tempo_y),
-            egui::Align2::CENTER_TOP,
+            egui::Pos2::new(left_x, tempo_y),
+            egui::Align2::LEFT_TOP,
             text,
             egui::FontId::new(glyph_size, egui::FontFamily::Proportional),
             title_color,
@@ -281,7 +286,6 @@ pub fn render_page(
     let staff_slot_height = staff_height_val + SYSTEM_SPACING * zoom;
 
     let usable_width = layout.page_width - PAGE_MARGIN_LEFT * zoom - PAGE_MARGIN_RIGHT * zoom;
-    let left_x = top_left.x + PAGE_MARGIN_LEFT * zoom;
 
     let _prev_key: Option<&crate::notation::KeySignature> = None;
 

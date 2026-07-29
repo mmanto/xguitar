@@ -9,6 +9,8 @@ Versionado semántico: `MAJOR.MINOR.PATCH`.
 ## [Sin publicar]
 
 ### Added
+- Reproducción de partituras: botón Play/Stop en la barra de herramientas, secuenciador que recorre la partitura respetando tempo, ligaduras, tresillos, articulaciones (staccato, tenuto) y dinámicas, motor de síntesis sfizz (formato de instrumento SFZ) sobre `cpal` — nativo únicamente, ver ADR-008
+- Parseo de `<time-modification>` (ratio de tresillos/quintillos) en notas y silencios
 - Ventana borderless con barra superior personalizada (5% altura)
 - Fuente Leland embebida para notación musical y UI
 - Renderizado de claves: Sol (G clef) y Fa (F clef)
@@ -109,6 +111,10 @@ Versionado semántico: `MAJOR.MINOR.PATCH`.
 - Quiebre automático de compases en múltiples líneas cuando exceden el ancho disponible de página
 - Estiramiento proporcional de compases por línea para llenar el ancho completo del pentagrama
 - Repetición de la clave al inicio de cada renglón cuando un pentagrama se parte en varias líneas (convención de grabado estándar)
+
+### Fixed
+- Los saltos de sistema explícitos del origen (`<print new-system="yes"/>` de MusicXML) ahora se respetan: antes se ignoraban y el layout paginado solo partía renglones por ancho disponible, produciendo una distribución de compases por línea distinta a la del archivo original (y de programas como Guitar Pro/MuseScore)
+- El tempo (metrónomo) ahora se alinea al margen izquierdo del pentagrama en vez de centrarse en el ancho completo de la página; antes quedaba "flotando" sin relación visual con el primer compás, sobre todo en sistemas con varios compases por renglón
 
 ### Changed
 - Calibrado el 100% de zoom para que coincida visualmente con partituras bien grabadas (comparado contra un PDF de referencia): antes había que subir a ~220% para lograr ese resultado. Zoom por defecto de un documento nuevo: 1.0 (antes 1.30). Ver ADR-007 en `docs/dev/DECISIONS.md`.

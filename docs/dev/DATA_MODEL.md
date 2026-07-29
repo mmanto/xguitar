@@ -44,6 +44,18 @@ Define la posición tonal en el pentagrama.
 | SixtyFourth | `\u{E1DD}` | U+E1DD | 4 |
 | HundredTwentyEighth | `\u{E1DD}` | U+E1DD | 5 |
 
+### `TimeModification` (tresillos/quintillos — duración)
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `actual_notes` | `u8` | Notas realmente presentes en el grupo (ej. 3 en un tresillo) |
+| `normal_notes` | `u8` | Notas del valor normal en ese mismo tiempo (ej. 2) |
+
+`ratio()` devuelve `normal_notes / actual_notes` para escalar la duración en
+divisiones. Se parsea desde `<time-modification>`, independiente del `Tuplet`
+visual de `NoteAttachment` (corchete/número), que hoy no se parsea desde
+MusicXML — sólo existe como dato para quien lo construya manualmente.
+
 ### `Note` (Nota musical)
 
 | Campo | Tipo | Descripción |
@@ -51,6 +63,7 @@ Define la posición tonal en el pentagrama.
 | `pitch` | `Pitch` | Altura: step, accidental, octave |
 | `figure` | `NoteFigure` | Duración rítmica |
 | `dotted` | `u8` | Cantidad de puntillos (0–3) |
+| `time_modification` | `Option<TimeModification>` | Ratio actual/normal de `<time-modification>` (tresillos, etc.) — afecta duración sonante, no el dibujo del corchete (eso lo controla `Tuplet` en `NoteAttachment`) |
 | `accidental_override` | `Option<Accidental>` | Alteración explícita (cortesía) |
 | `stem_direction` | `StemDirection` | Dirección de plica (Up/Down) |
 | `grace` | `bool` | Nota de gracia |
@@ -62,6 +75,7 @@ Define la posición tonal en el pentagrama.
 |---|---|---|
 | `figure` | `NoteFigure` | Duración |
 | `dotted` | `u8` | Puntillos (0–3) |
+| `time_modification` | `Option<TimeModification>` | Igual que en `Note` — tresillos de silencios |
 | `display_step` | `Option<Step>` | Posición visual |
 | `display_octave` | `Option<i8>` | Octava visual |
 | `measure` | `bool` | Silencio de compás completo |
@@ -81,6 +95,7 @@ Enumeración: `Note(Note)`, `Rest(Rest)`, `Chord(Vec<Note>)`, `Backup(u32)`, `Fo
 | `barline` | `Barline` | Barra divisoria |
 | `ending` | `Option<Ending>` | Casilla de repetición |
 | `divisions` | `u32` | Divisiones por negra (MusicXML `<divisions>`), heredado del último valor visto en compases anteriores |
+| `system_break` | `bool` | Salto de sistema explícito del origen (MusicXML `<print new-system="yes"/>`) antes de este compás. `break_measures_into_lines` (render/layout.rs) lo respeta como corte forzado de renglón, además del reflow automático por ancho disponible |
 
 ### `KeySignature` (Armadura)
 
@@ -223,3 +238,29 @@ Ligaduras con `kind` (Start/Stop/Continue), `number`, y `placement` (Above/Below
 | Glissando | Línea + "gliss." | `Painter::line_segment` |
 | Arpegio | Línea ondulada vertical | `Painter::line_segment` |
 | Trémolo | Barras diagonales | `Painter::line_segment` |
+
+---
+
+## `src/audio/` — Reproducción (ver ADR-008)
+
+No forma parte del modelo de dominio de notación (`notation::`) — vive en su
+propio módulo, también libre de tipos de egui, que consume `Score` para
+producir eventos de audio.
+
+### `sequencer::SequencedEvent`
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `time_secs` | `f32` | Tiempo absoluto desde el inicio de la partitura |
+| `kind` | `EventKind` | `NoteOn { midi, velocity }` / `NoteOff { midi }` |
+
+`sequencer::build_events(&Score) -> Vec<SequencedEvent>` es la única función
+pública del módulo — pura, testeable sin audio real (ver tests en el mismo
+archivo).
+
+### `PlaybackEngine` (trait, `audio::mod`)
+
+Interfaz que desacopla el secuenciador del motor de síntesis concreto:
+`load_instrument`, `configure(sample_rate, max_block_frames)` (default
+no-op), `note_on`, `note_off`, `render(buffer, channels)` (interleaved).
+Implementada hoy por `sfizz::SfizzEngine` (nativo únicamente).

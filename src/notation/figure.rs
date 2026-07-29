@@ -142,3 +142,22 @@ impl NoteFigure {
         }
     }
 }
+
+/// Modificación de duración por agrupación irregular (tresillo, quintillo,
+/// etc.), tomada de `<time-modification>`. Afecta la duración sonante de la
+/// nota/silencio (`actual_notes` suenan en el tiempo de `normal_notes`) —
+/// independiente del `Tuplet` visual (corchete/número), que sólo controla
+/// cómo se dibuja el grupo.
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub struct TimeModification {
+    pub actual_notes: u8,
+    pub normal_notes: u8,
+}
+
+impl TimeModification {
+    /// Factor por el que hay que multiplicar la duración en divisiones
+    /// (normal_notes / actual_notes — ej. 2/3 para un tresillo de corcheas).
+    pub fn ratio(self) -> f32 {
+        self.normal_notes as f32 / self.actual_notes as f32
+    }
+}

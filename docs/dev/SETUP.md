@@ -155,3 +155,10 @@ cargo run --release
 | `dirs` | 6 | Directorios de configuración cross-platform |
 | `roxmltree` | 0.20 | Parseo de XML sin allocaciones (MusicXML) |
 | `rfd` | 0.15 | Diálogo de archivos nativo cross-platform |
+| `cpal` | 0.18 | I/O de audio cross-platform (solo nativo) — ver ADR-008 |
+| `libc` | 0.2 | Tipos C para el FFI a `sfizz` (solo nativo) |
+| `pkg-config` | 0.3 | Build-dependency: ubica `libsfizz` en `build.rs` |
+
+`sfizz` (librería de sistema, no crate — no existe uno publicado) se linkea
+dinámicamente en build nativo. Ver `ENV.md` para instalarla por plataforma y
+para cómo apuntar la app a un instrumento `.sfz` de guitarra.

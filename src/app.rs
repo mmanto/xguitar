@@ -46,6 +46,7 @@ impl Document {
                             ending: None,
                             directions: vec![],
                             divisions: 1,
+                            system_break: false,
                         }],
                         name: String::new(),
                         abbreviation: String::new(),
@@ -93,6 +94,9 @@ pub struct MGuitarApp {
     pub pending_open: bool,
     pub pending_xml: std::rc::Rc<std::cell::RefCell<Option<(String, String)>>>,
     session_path: std::path::PathBuf,
+    /// Reproducción de partituras (sfizz + cpal) — solo nativo, ver ADR-008.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub audio: crate::audio::player::AudioService,
 }
 
 impl MGuitarApp {
@@ -131,6 +135,18 @@ impl MGuitarApp {
             .join("m-guitar")
             .join("session.json");
 
+        #[cfg(not(target_arch = "wasm32"))]
+        let audio = {
+            let mut audio = crate::audio::player::AudioService::new();
+            let default_instrument = dirs::config_dir()
+                .unwrap_or_else(|| std::path::PathBuf::from("."))
+                .join("m-guitar")
+                .join("instruments")
+                .join("Strumstick.sfz");
+            audio.set_instrument_path(Some(default_instrument));
+            audio
+        };
+
         let mut slf = Self {
             window_open: true,
             pending_xml: pending_xml.clone(),
@@ -144,6 +160,8 @@ impl MGuitarApp {
             status_message: None,
             pending_open: false,
             session_path,
+            #[cfg(not(target_arch = "wasm32"))]
+            audio,
         };
 
         // Restore session: load files from previous run
@@ -247,6 +265,7 @@ impl MGuitarApp {
             pitch,
             figure,
             dotted: 0,
+            time_modification: None,
             accidental_override: None,
             stem_direction: StemDirection::Up,
             grace: false,
@@ -283,6 +302,7 @@ impl MGuitarApp {
                 ending: None,
                 directions: vec![],
                 divisions: 1,
+                system_break: false,
             });
         }
         let last = staff.measures.last_mut().unwrap();
@@ -471,7 +491,33 @@ impl eframe::App for MGuitarApp {
                         });
                     });
 
-                    // ── Row 2: Toolbar (placeholder) ──
+                    // ── Row 2: Toolbar ──
+                    ui.horizontal(|ui| {
+                        #[cfg(not(target_arch = "wasm32"))]
+                        {
+                            if let Some(err) = self.audio.take_last_error() {
+                                self.status_message = Some(err);
+                            }
+                            let playing = self.audio.is_playing();
+                            let has_doc = !self.documents.is_empty();
+                            if playing {
+                                if ui.button(self.i18n.t("stop")).clicked() {
+                                    self.audio.stop();
+                                }
+                                ui.ctx().request_repaint();
+                            } else {
+                                let button = ui.add_enabled(has_doc, egui::Button::new(self.i18n.t("play")));
+                                if button.clicked() {
+                                    self.audio.play(&self.documents[self.active_doc].score);
+                                }
+                            }
+                        }
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            ui.add_enabled(false, egui::Button::new(self.i18n.t("play")))
+                                .on_disabled_hover_text(self.i18n.t("play_wasm_unavailable"));
+                        }
+                    });
                     ui.add_space(4.0);
                     // ── Row 3: Tabs ──
                     if self.documents.len() > 1 {
@@ -525,8 +571,9 @@ impl eframe::App for MGuitarApp {
                         .pick_file()
                         .await
                     {
+                        let name = file.file_name();
                         if let Ok(xml) = String::from_utf8(file.read().await) {
-                            *pending.borrow_mut() = Some(xml);
+                            *pending.borrow_mut() = Some((xml, name));
                             ctx2.request_repaint();
                         }
                     }

@@ -206,7 +206,7 @@ pub fn break_measures_into_lines(
     for (i, measure) in measures.iter().enumerate() {
         let mw = measure_natural_width(measure, line_spacing).max(min_measure_width);
 
-        if i > line_start && accumulated + mw > available_width {
+        if i > line_start && (measure.system_break || accumulated + mw > available_width) {
             lines.push((line_start, i));
             line_start = i;
             accumulated = mw;
@@ -248,6 +248,7 @@ mod tests {
             ending: None,
             directions: vec![],
             divisions: 1,
+            system_break: false,
         }
     }
 
@@ -292,6 +293,7 @@ mod tests {
         let rest_measure = measure_with(vec![MeasureElement::Rest(Rest {
             figure: NoteFigure::Quarter,
             dotted: 0,
+            time_modification: None,
             display_step: None,
             display_octave: None,
             measure: false,
@@ -350,6 +352,27 @@ mod tests {
                 "no slack: widths should match naturals"
             );
         }
+    }
+
+    #[test]
+    fn break_measures_into_lines_forces_break_at_system_break() {
+        let ls = 12.0;
+        let mut measures: Vec<Measure> = (0..4)
+            .map(|_| measure_with(vec![note(NoteFigure::Quarter)]))
+            .collect();
+        measures[2].system_break = true;
+
+        // Plenty of width for all 4 measures on one line — only the explicit
+        // system break should force a split.
+        let available_width = measure_natural_width(&measures[0], ls) * 10.0;
+        let lines = break_measures_into_lines(&measures, available_width, ls, ls * 0.5);
+
+        assert_eq!(
+            lines,
+            vec![(0, 2), (2, 4)],
+            "system_break on measure index 2 should force a new line there, \
+             even though all measures would otherwise fit on one line"
+        );
     }
 
     #[test]

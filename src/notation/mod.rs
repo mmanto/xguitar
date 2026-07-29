@@ -30,7 +30,7 @@ pub use direction::{
     Bracket, BracketKind, Dashes, DashesKind, Direction, DirectionKind, LineEnd, Metronome,
     OctaveShift, OctaveShiftKind, Pedal, PedalKind, Wedge, WedgeKind,
 };
-pub use figure::NoteFigure;
+pub use figure::{NoteFigure, TimeModification};
 pub use grace::GraceNote;
 pub use key::{KeyMode, KeySignature};
 pub use layout::{SystemDividers, SystemLayout};

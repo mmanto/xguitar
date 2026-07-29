@@ -41,4 +41,7 @@ pub struct Measure {
     pub directions: Vec<Direction>,
     /// Divisiones por negra (MusicXML `<divisions>`), heredado del último valor visto.
     pub divisions: u32,
+    /// `true` si la partitura de origen marca explícitamente un salto de sistema
+    /// antes de este compás (MusicXML `<print new-system="yes"/>`).
+    pub system_break: bool,
 }

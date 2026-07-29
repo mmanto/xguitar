@@ -34,6 +34,10 @@ impl I18n {
                 "new_score" => "Partitura nueva creada",
                 "open_success" => "{} cargada",
                 "open_error" => "Error al abrir: {}",
+                "play" => "▶",
+                "stop" => "⏹",
+                "play_wasm_unavailable" => "Reproducción no disponible en el navegador todavía",
+                "no_instrument" => "Sin instrumento configurado — elegí un archivo .sfz en Preferencias",
                 _ => key,
             },
             Lang::En => match key {
@@ -51,6 +55,10 @@ impl I18n {
                 "new_score" => "New score created",
                 "open_success" => "{} loaded",
                 "open_error" => "Error opening: {}",
+                "play" => "▶",
+                "stop" => "⏹",
+                "play_wasm_unavailable" => "Playback isn't available in the browser build yet",
+                "no_instrument" => "No instrument configured — pick a .sfz file in Preferences",
                 _ => key,
             },
         }
@@ -78,6 +86,8 @@ mod tests {
             "new_score",
             "open_success",
             "open_error",
+            "play_wasm_unavailable",
+            "no_instrument",
         ];
         for key in keys {
             let es_val = es.t(key);
