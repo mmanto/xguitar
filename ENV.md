@@ -16,12 +16,12 @@ Requisitos de toolchain y entorno para compilar y ejecutar m-guitar.
 
 ## Dependencias del sistema
 
-`eframe` requiere algunas bibliotecas nativas según la plataforma. La
-reproducción de audio (`cpal` + `sfizz`, ver ADR-008) agrega, solo en build
+La reproducción de audio (`cpal` + `sfizz`, ver ADR-008) agrega, solo en build
 nativo, la librería de sistema `sfizz` (con su `.pc` de pkg-config) más las
-libs de audio habituales de Linux (ALSA, que `cpal` usa como backend — en
-sistemas con PipeWire esto ya se resuelve de forma transparente vía la capa
-de compatibilidad `pipewire-alsa`/`pipewire-pulse`, sin dependencias extra).
+libs de audio habituales de Linux. `cpal` usa PipeWire de forma nativa
+(feature `pipewire`) cuando está disponible; si no, degrada a JACK o ALSA.
+En sistemas con PipeWire, la app se registra como cliente nativo y es
+enrutable desde qpwgraph, helvum o Carla.
 
 ### Linux (Debian/Ubuntu)
 
@@ -39,7 +39,7 @@ el repo OBS de terceros `home:sfztools:sfizz`) para tener `libsfizz.so` y su
 ### Linux (Arch)
 
 ```bash
-sudo pacman -S cmake gtk3 alsa-lib pkgconf sfizz-lib
+sudo pacman -S cmake gtk3 alsa-lib pkgconf sfizz-lib clang
 ```
 
 ### macOS

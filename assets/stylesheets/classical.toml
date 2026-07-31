@@ -34,6 +34,8 @@ note_dark = "#E0E0E0"
 clef_light = "#000000"
 clef_dark = "#E0E0E0"
 staff_scale = 0.75
+note_highlight_light = "#D46A04"
+note_highlight_dark = "#FFB347"
 
 [notation.clefs.treble]
 glyph_scale = 4.2

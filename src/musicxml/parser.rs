@@ -545,8 +545,11 @@ fn parse_measure_elements(
                         elements.push(MeasureElement::Note(held));
                         held_note = Some(note); // hold the new note
                     } else {
-                        // No held note, no chord. Hold this note and wait to see
-                        // if the next note has <chord/>.
+                        // No held note, no chord. Flush any pending chord buffer
+                        // from a previous chord group, then hold this note.
+                        if !chord_buffer.is_empty() {
+                            elements.push(MeasureElement::Chord(std::mem::take(&mut chord_buffer)));
+                        }
                         held_note = Some(note);
                     }
                 }

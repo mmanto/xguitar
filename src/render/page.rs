@@ -461,6 +461,9 @@ pub fn render_page(
                         measure_x,
                         mw,
                         style,
+                        sref.system_idx,
+                        sref.staff_idx,
+                        actual_idx,
                     );
 
                     // Directions

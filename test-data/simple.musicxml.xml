@@ -7,9 +7,9 @@
  <identification>
   <creator type="arranger">Nombre del artista</creator>
   <encoding>
-   <encoding-date>2026-07-27</encoding-date>
+   <encoding-date>2026-07-29</encoding-date>
    <software>Guitar Pro 8.1.4</software>
-   <supports element="print" value="yes" type="yes" attribute="new-system"/>
+   <supports attribute="new-system" type="yes" value="yes" element="print"/>
   </encoding>
  </identification>
  <defaults>
@@ -23,13 +23,13 @@
   </page-layout>
  </defaults>
  <credit>
-  <credit-words default-x="655" default-y="1790" font-size="24" justify="center" valign="top">Este es el título</credit-words>
+  <credit-words justify="center" default-x="655" default-y="1790" valign="top" font-size="24">Este es el título</credit-words>
  </credit>
  <credit>
-  <credit-words default-x="655" default-y="1735.51" font-size="14" justify="center" valign="top">Nombre del artista</credit-words>
+  <credit-words justify="center" default-x="655" default-y="1735.51" valign="top" font-size="14">Nombre del artista</credit-words>
  </credit>
  <credit>
-  <credit-words default-x="1270" default-y="1616.9" font-size="12" justify="right" valign="bottom">Nombre del artista</credit-words>
+  <credit-words justify="right" default-x="1270" default-y="1616.9" valign="bottom" font-size="12">Nombre del artista</credit-words>
  </credit>
  <part-list>
   <score-part id="P1">
@@ -48,7 +48,7 @@
   <measure number="1">
    <print new-system="yes"/>
    <attributes>
-    <divisions>1</divisions>
+    <divisions>2</divisions>
     <key>
      <fifths>0</fifths>
      <mode>major</mode>
@@ -91,6 +91,11 @@
 </root>
 ?>
     </staff-details>
+    <transpose number="1">
+     <diatonic>0</diatonic>
+     <chromatic>0</chromatic>
+     <octave-change>-1</octave-change>
+    </transpose>
    </attributes>
    <direction directive="yes">
     <direction-type>
@@ -110,19 +115,20 @@
    </direction>
    <note>
     <pitch>
-     <step>C</step>
-     <octave>4</octave>
+     <step>F</step>
+     <octave>3</octave>
     </pitch>
     <duration>1</duration>
     <voice>1</voice>
-    <type>quarter</type>
+    <type>eighth</type>
     <stem>up</stem>
     <notehead>normal</notehead>
+    <beam number="1">begin</beam>
     <notations>
      <technical>
 <?GP 
 <root>
-<string>2</string>
+<string>6</string>
 <fret>1</fret>
 </root>
 ?>
@@ -130,20 +136,45 @@
     </notations>
    </note>
    <note>
+    <chord/>
     <pitch>
-     <step>D</step>
+     <step>C</step>
      <octave>4</octave>
     </pitch>
     <duration>1</duration>
     <voice>1</voice>
-    <type>quarter</type>
+    <type>eighth</type>
     <stem>up</stem>
     <notehead>normal</notehead>
+    <beam number="1">begin</beam>
     <notations>
      <technical>
 <?GP 
 <root>
-<string>2</string>
+<string>5</string>
+<fret>3</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <chord/>
+    <pitch>
+     <step>F</step>
+     <octave>4</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">begin</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>4</string>
 <fret>3</fret>
 </root>
 ?>
@@ -153,19 +184,202 @@
    <note>
     <pitch>
      <step>E</step>
-     <octave>4</octave>
+     <octave>3</octave>
     </pitch>
     <duration>1</duration>
     <voice>1</voice>
-    <type>quarter</type>
+    <type>eighth</type>
     <stem>up</stem>
     <notehead>normal</notehead>
+    <beam number="1">end</beam>
     <notations>
      <technical>
 <?GP 
 <root>
-<string>1</string>
+<string>6</string>
 <fret>0</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <chord/>
+    <pitch>
+     <step>B</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">end</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>5</string>
+<fret>2</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <chord/>
+    <pitch>
+     <step>E</step>
+     <octave>4</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">end</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>4</string>
+<fret>2</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <pitch>
+     <step>E</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">begin</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>6</string>
+<fret>0</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <chord/>
+    <pitch>
+     <step>B</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">begin</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>5</string>
+<fret>2</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <chord/>
+    <pitch>
+     <step>E</step>
+     <octave>4</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">begin</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>4</string>
+<fret>2</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <pitch>
+     <step>E</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">end</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>6</string>
+<fret>0</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <chord/>
+    <pitch>
+     <step>B</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">end</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>5</string>
+<fret>2</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <chord/>
+    <pitch>
+     <step>E</step>
+     <octave>4</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">end</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>4</string>
+<fret>2</fret>
 </root>
 ?>
      </technical>
@@ -174,19 +388,270 @@
    <note>
     <pitch>
      <step>F</step>
-     <octave>4</octave>
+     <octave>3</octave>
     </pitch>
     <duration>1</duration>
     <voice>1</voice>
-    <type>quarter</type>
+    <type>eighth</type>
     <stem>up</stem>
     <notehead>normal</notehead>
+    <beam number="1">begin</beam>
     <notations>
      <technical>
 <?GP 
 <root>
-<string>1</string>
+<string>6</string>
 <fret>1</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <chord/>
+    <pitch>
+     <step>C</step>
+     <octave>4</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">begin</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>5</string>
+<fret>3</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <chord/>
+    <pitch>
+     <step>F</step>
+     <octave>4</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">begin</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>4</string>
+<fret>3</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <pitch>
+     <step>E</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">end</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>6</string>
+<fret>0</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <chord/>
+    <pitch>
+     <step>B</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">end</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>5</string>
+<fret>2</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <chord/>
+    <pitch>
+     <step>E</step>
+     <octave>4</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">end</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>4</string>
+<fret>2</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <pitch>
+     <step>E</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">begin</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>6</string>
+<fret>0</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <chord/>
+    <pitch>
+     <step>B</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">begin</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>5</string>
+<fret>2</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <chord/>
+    <pitch>
+     <step>E</step>
+     <octave>4</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">begin</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>4</string>
+<fret>2</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <pitch>
+     <step>E</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">end</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>6</string>
+<fret>0</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <chord/>
+    <pitch>
+     <step>B</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">end</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>5</string>
+<fret>2</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <chord/>
+    <pitch>
+     <step>E</step>
+     <octave>4</octave>
+    </pitch>
+    <duration>1</duration>
+    <voice>1</voice>
+    <type>eighth</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <beam number="1">end</beam>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>4</string>
+<fret>2</fret>
 </root>
 ?>
      </technical>
@@ -195,6 +660,7 @@
   </measure>
   <measure number="2">
    <attributes>
+    <divisions>1</divisions>
     <staff-details number="1">
 <?GP 
 <root>
@@ -211,2293 +677,74 @@
    </direction>
    <note>
     <pitch>
+     <step>F</step>
+     <octave>3</octave>
+    </pitch>
+    <duration>2</duration>
+    <voice>1</voice>
+    <type>half</type>
+    <stem>up</stem>
+    <notehead>normal</notehead>
+    <notations>
+     <technical>
+<?GP 
+<root>
+<string>6</string>
+<fret>1</fret>
+</root>
+?>
+     </technical>
+    </notations>
+   </note>
+   <note>
+    <chord/>
+    <pitch>
      <step>C</step>
      <octave>4</octave>
     </pitch>
-    <duration>4</duration>
+    <duration>2</duration>
     <voice>1</voice>
-    <type>whole</type>
+    <type>half</type>
     <stem>up</stem>
     <notehead>normal</notehead>
     <notations>
      <technical>
 <?GP 
 <root>
-<string>3</string>
-<fret>5</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <chord/>
-    <pitch>
-     <step>E</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>4</duration>
-    <voice>1</voice>
-    <type>whole</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>5</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <chord/>
-    <pitch>
-     <step>G</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>4</duration>
-    <voice>1</voice>
-    <type>whole</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>1</string>
+<string>5</string>
 <fret>3</fret>
 </root>
 ?>
      </technical>
     </notations>
    </note>
-  </measure>
-  <measure number="3">
-   <attributes>
-    <staff-details number="1">
-<?GP 
-<root>
-</root>
-?>
-    </staff-details>
-   </attributes>
    <note>
-    <rest/>
-    <duration>4</duration>
-    <voice>1</voice>
-    <type>whole</type>
-   </note>
-  </measure>
-  <measure number="4">
-   <print new-system="yes"/>
-   <attributes>
-    <staff-details number="1">
-<?GP 
-<root>
-</root>
-?>
-    </staff-details>
-   </attributes>
-   <direction>
-    <direction-type>
-     <dynamics>
-      <f/>
-     </dynamics>
-    </direction-type>
-   </direction>
-   <note>
+    <chord/>
     <pitch>
-     <step>E</step>
+     <step>F</step>
      <octave>4</octave>
     </pitch>
-    <duration>3</duration>
+    <duration>2</duration>
     <voice>1</voice>
     <type>half</type>
-    <dot/>
     <stem>up</stem>
     <notehead>normal</notehead>
     <notations>
      <technical>
 <?GP 
 <root>
-<string>1</string>
-<fret>0</fret>
+<string>4</string>
+<fret>3</fret>
 </root>
 ?>
      </technical>
     </notations>
    </note>
-   <direction>
-    <direction-type>
-     <dynamics>
-      <mf/>
-     </dynamics>
-    </direction-type>
-   </direction>
    <note>
-    <pitch>
-     <step>E</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <tie type="start"/>
+    <rest/>
+    <duration>2</duration>
     <voice>1</voice>
-    <type>quarter</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>3</string>
-<fret>9</fret>
-</root>
-?>
-     </technical>
-     <tied type="start"/>
-    </notations>
-   </note>
-  </measure>
-  <measure number="5">
-   <attributes>
-    <staff-details number="1">
-<?GP 
-<root>
-</root>
-?>
-    </staff-details>
-   </attributes>
-   <direction>
-    <direction-type>
-     <dynamics>
-      <f/>
-     </dynamics>
-    </direction-type>
-   </direction>
-   <note>
-    <pitch>
-     <step>E</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>4</duration>
-    <tie type="stop"/>
-    <voice>1</voice>
-    <type>whole</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>3</string>
-<fret>9</fret>
-</root>
-?>
-     </technical>
-     <tied type="stop"/>
-    </notations>
-   </note>
-  </measure>
-  <measure number="6">
-   <attributes>
-    <divisions>16</divisions>
-    <staff-details number="1">
-<?GP 
-<root>
-</root>
-?>
-    </staff-details>
-   </attributes>
-   <direction>
-    <direction-type>
-     <dynamics>
-      <mf/>
-     </dynamics>
-    </direction-type>
-   </direction>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">begin</beam>
-    <beam number="2">begin</beam>
-    <beam number="3">begin</beam>
-    <beam number="4">begin</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">end</beam>
-    <beam number="2">end</beam>
-    <beam number="3">end</beam>
-    <beam number="4">end</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>16</duration>
-    <voice>1</voice>
-    <type>quarter</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>16</duration>
-    <voice>1</voice>
-    <type>quarter</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>16</duration>
-    <voice>1</voice>
-    <type>quarter</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-  </measure>
-  <measure number="7">
-   <print new-system="yes"/>
-   <attributes>
-    <staff-details number="1">
-<?GP 
-<root>
-</root>
-?>
-    </staff-details>
-   </attributes>
-   <direction>
-    <direction-type>
-     <dynamics>
-      <mf/>
-     </dynamics>
-    </direction-type>
-   </direction>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">begin</beam>
-    <beam number="2">begin</beam>
-    <beam number="3">begin</beam>
-    <beam number="4">begin</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">end</beam>
-    <beam number="2">end</beam>
-    <beam number="3">end</beam>
-    <beam number="4">end</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">begin</beam>
-    <beam number="2">begin</beam>
-    <beam number="3">begin</beam>
-    <beam number="4">begin</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">end</beam>
-    <beam number="2">end</beam>
-    <beam number="3">end</beam>
-    <beam number="4">end</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">begin</beam>
-    <beam number="2">begin</beam>
-    <beam number="3">begin</beam>
-    <beam number="4">begin</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">end</beam>
-    <beam number="2">end</beam>
-    <beam number="3">end</beam>
-    <beam number="4">end</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">begin</beam>
-    <beam number="2">begin</beam>
-    <beam number="3">begin</beam>
-    <beam number="4">begin</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">continue</beam>
-    <beam number="2">continue</beam>
-    <beam number="3">continue</beam>
-    <beam number="4">continue</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
-   </note>
-   <note>
-    <pitch>
-     <step>C</step>
-     <octave>4</octave>
-    </pitch>
-    <duration>1</duration>
-    <voice>1</voice>
-    <type>64th</type>
-    <stem>up</stem>
-    <notehead>normal</notehead>
-    <beam number="1">end</beam>
-    <beam number="2">end</beam>
-    <beam number="3">end</beam>
-    <beam number="4">end</beam>
-    <notations>
-     <technical>
-<?GP 
-<root>
-<string>2</string>
-<fret>1</fret>
-</root>
-?>
-     </technical>
-    </notations>
+    <type>half</type>
    </note>
   </measure>
  </part>

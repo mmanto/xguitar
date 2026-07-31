@@ -25,56 +25,66 @@ pub fn compute_beams(elements: &[MeasureElement], divisions: u32) -> Vec<BeamGro
     // Effective divisions: at least 1 to avoid division-by-zero / integer underflow
     let divs = if divisions == 0 { 4 } else { divisions };
 
-    for (i, elem) in elements.iter().enumerate() {
-        match elem {
-            MeasureElement::Note(note) if note.figure.flag_count() > 0 && !note.grace => {
-                let fc = note.figure.flag_count();
-                let dur = note.figure.duration_divisions(divs);
-                let effective_dur = if dur == 0 { 1 } else { dur };
+    /// Returns `Some((flag_count, duration_divisions))` if the element is a
+    /// beamable note or chord (figure shorter than quarter, not a grace note).
+    fn beamed_figure(elem: &MeasureElement, divs: u32) -> Option<(u8, u32)> {
+        let notes: &[crate::notation::Note] = match elem {
+            MeasureElement::Note(n) => std::slice::from_ref(n),
+            MeasureElement::Chord(notes) => notes.as_slice(),
+            _ => return None,
+        };
+        let first = notes.first()?;
+        let fc = first.figure.flag_count();
+        if fc == 0 || first.grace {
+            return None;
+        }
+        let dur = first.figure.duration_divisions(divs);
+        Some((fc, if dur == 0 { 1 } else { dur }))
+    }
 
-                // Check if adding this note would cross a beat boundary
-                // within an existing group.
-                if current_start.is_some() && accumulated > 0 && accumulated.is_multiple_of(divs) {
-                    // Beat boundary: close current group, start new one
-                    let end = i - 1;
-                    if end > current_start.unwrap() {
-                        for level in 0..max_flags {
-                            groups.push(BeamGroup {
-                                start_idx: current_start.unwrap(),
-                                end_idx: end,
-                                level,
-                            });
-                        }
+    for (i, elem) in elements.iter().enumerate() {
+        if let Some((fc, effective_dur)) = beamed_figure(elem, divs) {
+            // Check if adding this note would cross a beat boundary
+            // within an existing group.
+            if current_start.is_some() && accumulated > 0 && accumulated.is_multiple_of(divs) {
+                // Beat boundary: close current group, start new one
+                let end = i - 1;
+                if end > current_start.unwrap() {
+                    for level in 0..max_flags {
+                        groups.push(BeamGroup {
+                            start_idx: current_start.unwrap(),
+                            end_idx: end,
+                            level,
+                        });
                     }
-                    current_start = Some(i);
-                    max_flags = fc;
-                    accumulated = effective_dur;
-                } else if current_start.is_none() {
-                    current_start = Some(i);
-                    max_flags = fc;
-                    accumulated = effective_dur;
-                } else {
-                    max_flags = max_flags.max(fc);
-                    accumulated += effective_dur;
                 }
+                current_start = Some(i);
+                max_flags = fc;
+                accumulated = effective_dur;
+            } else if current_start.is_none() {
+                current_start = Some(i);
+                max_flags = fc;
+                accumulated = effective_dur;
+            } else {
+                max_flags = max_flags.max(fc);
+                accumulated += effective_dur;
             }
-            _ => {
-                // Rests, chords, backup/forward — break beam group
-                if let Some(start) = current_start {
-                    let end = i - 1;
-                    if end > start {
-                        for level in 0..max_flags {
-                            groups.push(BeamGroup {
-                                start_idx: start,
-                                end_idx: end,
-                                level,
-                            });
-                        }
+        } else {
+            // Rests, backup/forward, unbeamed chords — break beam group
+            if let Some(start) = current_start {
+                let end = i - 1;
+                if end > start {
+                    for level in 0..max_flags {
+                        groups.push(BeamGroup {
+                            start_idx: start,
+                            end_idx: end,
+                            level,
+                        });
                     }
-                    current_start = None;
-                    max_flags = 0;
-                    accumulated = 0;
                 }
+                current_start = None;
+                max_flags = 0;
+                accumulated = 0;
             }
         }
     }
@@ -99,7 +109,7 @@ pub fn compute_beams(elements: &[MeasureElement], divisions: u32) -> Vec<BeamGro
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::notation::{Note, NoteFigure, StemDirection};
+    use crate::notation::{Note, NoteFigure};
 
     fn eighth() -> MeasureElement {
         MeasureElement::Note(Note {

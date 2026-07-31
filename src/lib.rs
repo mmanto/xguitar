@@ -17,11 +17,11 @@ pub use notation::{
     DirectionKind, DynamicMark, Ending, Fermata, FermataShape, Glissando, GlissandoKind, GraceNote,
     GroupBracket, HarmonicKind, KeyMode, KeySignature, LineEnd, LineType, Lyric, Measure,
     MeasureElement, MeasureStyle, Metronome, MultipleRest, Note, NoteAttachment, NoteFigure,
-    OctaveShift, OctaveShiftKind, Ornament, PartGroup, PartInfo, PartList, Pitch, Placement,
-    RepeatDirection, Rest, Scaling, Score, SlashNote, SlideKind, Slur, SlurKind, Staff, StaffKind,
-    StemDirection, Step, Syllabic, System, SystemDividers, SystemLayout, TabElement, TabMeasure,
-    TabNote, TabRest, TabTechnique, TablatureStaff, Technical, Tie, TieKind, TimeSignature,
-    TimeSignatureStyle, Tremolo, TuningStep, Tuplet, TupletShow, Wedge, WedgeKind,
+    NoteRef, OctaveShift, OctaveShiftKind, Ornament, PartGroup, PartInfo, PartList, Pitch,
+    Placement, RepeatDirection, Rest, Scaling, Score, SlashNote, SlideKind, Slur, SlurKind, Staff,
+    StaffKind, StemDirection, Step, Syllabic, System, SystemDividers, SystemLayout, TabElement,
+    TabMeasure, TabNote, TabRest, TabTechnique, TablatureStaff, Technical, Tie, TieKind,
+    TimeSignature, TimeSignatureStyle, Tremolo, TuningStep, Tuplet, TupletShow, Wedge, WedgeKind,
 };
 pub use render::{
     BASE_SCALE, PAGE_GAP, Page, PageLayout, RenderStyle, STAFF_LINE_SPACING, ScoreStylesheet,

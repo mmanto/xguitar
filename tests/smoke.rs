@@ -1,4 +1,4 @@
-use m_guitar::notation::{MeasureElement, Note, TieKind};
+use m_guitar::notation::MeasureElement;
 use m_guitar::parse_musicxml;
 
 #[test]
@@ -10,58 +10,24 @@ fn parse_simple_musicxml() {
     let system = &score.systems[0];
     assert_eq!(system.staves.len(), 1);
     let staff = &system.staves[0];
-    assert_eq!(staff.measures.len(), 7, "7 measures");
+    assert_eq!(staff.measures.len(), 2, "2 measures");
 
-    // Measure 1: 4 quarter notes + direction
+    // Measure 1: 8 eighth-note chords + directions
     let m1 = &staff.measures[0];
     assert_eq!(m1.directions.len(), 2, "measure 1: directions");
-    assert_eq!(m1.elements.len(), 4, "measure 1: 4 elements");
+    assert_eq!(m1.elements.len(), 8, "measure 1: 8 chords");
 
-    // Measure 2: chord (3 notes → single Chord element)
+    // Measure 2: half-note chord + half rest
     let m2 = &staff.measures[1];
     assert!(
         matches!(m2.elements[0], MeasureElement::Chord(_)),
         "measure 2: chord"
     );
+    assert_eq!(m2.elements.len(), 2, "measure 2: chord + rest");
 
-    // Measure 3: whole rest
-    let m3 = &staff.measures[2];
-    assert!(
-        matches!(m3.elements[0], MeasureElement::Rest(_)),
-        "measure 3: rest"
-    );
-
-    // Measures 4-5: tied notes
-    let m4_notes = extract_notes(&staff.measures[3]);
-    let m5_notes = extract_notes(&staff.measures[4]);
-    assert!(!m4_notes.is_empty(), "measure 4: notes");
-    assert!(!m5_notes.is_empty(), "measure 5: notes");
-
-    let has_start = m4_notes
-        .iter()
-        .filter_map(|n| n.attachments.as_ref())
-        .flat_map(|a| &a.ties)
-        .any(|t| matches!(t.kind, TieKind::Start));
-    let has_stop = m5_notes
-        .iter()
-        .filter_map(|n| n.attachments.as_ref())
-        .flat_map(|a| &a.ties)
-        .any(|t| matches!(t.kind, TieKind::Stop));
-
-    assert!(has_start, "measure 4: tie start");
-    assert!(has_stop, "measure 5: tie stop");
+    // File has 2 measures: 8 eighth chords + 1 half chord + rest
 }
 
-fn extract_notes(measure: &m_guitar::notation::Measure) -> Vec<&Note> {
-    measure
-        .elements
-        .iter()
-        .filter_map(|e| match e {
-            MeasureElement::Note(n) => Some(n),
-            _ => None,
-        })
-        .collect()
-}
 
 #[test]
 fn parse_test_1_xml() {

@@ -1,4 +1,6 @@
 use super::beam::compute_beams;
+
+use std::collections::HashSet;
 use super::constants::{
     CLEF_WIDTH, DEFAULT_MEASURE_WIDTH, INITIAL_BAR_GAP, STAFF_HEIGHT, STAFF_LINE_COUNT,
     STAFF_LINE_SPACING, TIME_SIG_WIDTH,
@@ -13,7 +15,7 @@ use super::{
     render_lyrics, render_measure_number, render_notehead, render_staff_lines,
 };
 use crate::notation::{
-    BarStyle, Clef, KeySignature, Measure, MeasureElement, NoteFigure, Placement, Score,
+    BarStyle, Clef, KeySignature, Measure, MeasureElement, NoteFigure, NoteRef, Placement, Score,
     StemDirection, TimeSignatureStyle,
 };
 use eframe::egui;
@@ -23,6 +25,7 @@ pub struct RenderStyle {
     pub line_spacing: f32,
     pub dark_mode: bool,
     pub sheet: ScoreStylesheet,
+    pub active_notes: HashSet<NoteRef>,
 }
 
 impl Default for RenderStyle {
@@ -31,6 +34,7 @@ impl Default for RenderStyle {
             line_spacing: STAFF_LINE_SPACING,
             dark_mode: false,
             sheet: ScoreStylesheet::builtin_default(),
+            active_notes: HashSet::new(),
         }
     }
 }
@@ -61,7 +65,6 @@ pub(crate) fn get_clef_config(sheet: &ScoreStylesheet, clef: Clef) -> (f32, f32)
     (v.glyph_scale, v.fine_offset)
 }
 
-/// Renderiza los elementos de un compás dentro de una medida.
 pub fn render_measure_elements(
     painter: &egui::Painter,
     measure: &Measure,
@@ -70,6 +73,9 @@ pub fn render_measure_elements(
     measure_x: f32,
     measure_width: f32,
     style: &RenderStyle,
+    system_idx: usize,
+    staff_idx: usize,
+    measure_idx: usize,
 ) {
     let elements = &measure.elements;
     if elements.is_empty() {
@@ -78,6 +84,7 @@ pub fn render_measure_elements(
 
     let line_spacing = style.line_spacing;
     let color = style.sheet.note_color(style.dark_mode);
+    let highlight_color = style.sheet.note_highlight_color(style.dark_mode);
     let divisions = measure.divisions;
 
     // Compute beam groups
@@ -89,31 +96,42 @@ pub fn render_measure_elements(
         .iter()
         .map(|b| {
             let half = line_spacing / 2.0;
-            let mut extreme_sp: i8 = 0;
-            let mut extreme_note_y: f32 = staff_origin.y;
+            let mut highest_sp: i8 = i8::MIN;
+            let mut lowest_sp: i8 = i8::MAX;
             for (ei, elem) in elements.iter().enumerate() {
                 if ei < b.start_idx || ei > b.end_idx {
                     continue;
                 }
-                if let MeasureElement::Note(note) = elem {
-                    let sp = note.pitch.staff_position(clef);
-                    let ny = staff_origin.y - sp as f32 * half;
-                    if sp.abs() > extreme_sp.abs()
-                        || (sp.abs() == extreme_sp.abs() && sp < 0)
-                    {
-                        extreme_sp = sp;
-                        extreme_note_y = ny;
+                let note_sp: Vec<i8> = match elem {
+                    MeasureElement::Note(n) => vec![n.pitch.staff_position(clef)],
+                    MeasureElement::Chord(notes) => {
+                        notes.iter().map(|n| n.pitch.staff_position(clef)).collect()
                     }
+                    _ => continue,
+                };
+                for sp in note_sp {
+                    highest_sp = highest_sp.max(sp);
+                    lowest_sp = lowest_sp.min(sp);
                 }
             }
-            let dir = if extreme_sp < 0 {
+            // Direction: if the lowest note is further from middle line than
+            // the highest, use stem up; otherwise stem down.
+            let dir = if lowest_sp.abs() > highest_sp.abs() {
                 StemDirection::Up
             } else {
                 StemDirection::Down
             };
+            // Beam positioned outside ALL notes: above highest for Up,
+            // below lowest for Down.
             let beam_y = match dir {
-                StemDirection::Up => extreme_note_y - line_spacing * 3.5,
-                StemDirection::Down => extreme_note_y + line_spacing * 3.5,
+                StemDirection::Up => {
+                    let highest_y = staff_origin.y - highest_sp as f32 * half;
+                    highest_y - line_spacing * 3.5
+                }
+                StemDirection::Down => {
+                    let lowest_y = staff_origin.y - lowest_sp as f32 * half;
+                    lowest_y + line_spacing * 3.5
+                }
             };
             (b.start_idx, b.end_idx, dir, beam_y)
         })
@@ -132,6 +150,8 @@ pub fn render_measure_elements(
                 let note_x = measure_x + offsets[ei];
                 let sp = note.pitch.staff_position(clef);
                 let note_y = staff_origin.y - sp as f32 * line_spacing / 2.0;
+                let note_ref = NoteRef { system_idx, staff_idx, measure_idx, element_idx: ei, subnote_idx: 0 };
+                let note_color = if style.active_notes.contains(&note_ref) { highlight_color } else { color };
                 if let Some(acc) = note.accidental_override {
                     super::note::render_accidental(
                         painter,
@@ -139,7 +159,7 @@ pub fn render_measure_elements(
                         note_y,
                         acc,
                         line_spacing,
-                        color,
+                        note_color,
                     );
                 } else if note.pitch.accidental != crate::notation::Accidental::Natural {
                     super::note::render_accidental(
@@ -148,7 +168,7 @@ pub fn render_measure_elements(
                         note_y,
                         note.pitch.accidental,
                         line_spacing,
-                        color,
+                        note_color,
                     );
                 }
 
@@ -159,7 +179,7 @@ pub fn render_measure_elements(
                     staff_origin,
                     sp,
                     note.figure,
-                    color,
+                    note_color,
                     line_spacing,
                 );
                 let is_beamed = beams.iter().any(|b| ei >= b.start_idx && ei <= b.end_idx);
@@ -188,7 +208,7 @@ pub fn render_measure_elements(
                     is_beamed,
                     stem_beam_y,
                     line_spacing,
-                    color,
+                    note_color,
                 );
 
                 // Dots
@@ -200,7 +220,7 @@ pub fn render_measure_elements(
                         note.dotted,
                         sp,
                         line_spacing,
-                        color,
+                        note_color,
                     );
                 }
 
@@ -220,7 +240,7 @@ pub fn render_measure_elements(
                         matches!(direction, StemDirection::Up),
                         attachments,
                         line_spacing,
-                        color,
+                        note_color,
                     );
                 }
             }
@@ -240,21 +260,36 @@ pub fn render_measure_elements(
                     .collect();
                 positions.sort_by_key(|(sp, _)| -sp); // highest first
 
-                // Stem direction for chord
-                let avg_sp: f32 = positions.iter().map(|(sp, _)| *sp as f32).sum::<f32>()
-                    / positions.len() as f32;
-                let direction = if avg_sp < 0.0 {
-                    StemDirection::Up
+                // Stem direction: use beam group's uniform direction when beamed,
+                // otherwise auto-compute from average staff position.
+                let is_beamed = beams.iter().any(|b| ei >= b.start_idx && ei <= b.end_idx);
+                let (direction, stem_beam_y) = if is_beamed {
+                    let meta = beam_meta
+                        .iter()
+                        .find(|(s, e, _, _)| ei >= *s && ei <= *e);
+                    let dir = meta.map(|(_, _, d, _)| *d).unwrap_or(StemDirection::Up);
+                    let by = meta.map(|(_, _, _, y)| *y);
+                    (dir, by)
                 } else {
-                    StemDirection::Down
+                    let avg_sp: f32 = positions.iter().map(|(sp, _)| *sp as f32).sum::<f32>()
+                        / positions.len() as f32;
+                    let dir = if avg_sp < 0.0 {
+                        StemDirection::Up
+                    } else {
+                        StemDirection::Down
+                    };
+                    (dir, None)
                 };
+
 
                 let half_spacing = line_spacing / 2.0;
 
-                for (sp, note) in &positions {
+                for (si, (sp, note)) in positions.iter().enumerate() {
                     let note_y = staff_origin.y - *sp as f32 * half_spacing;
+                    let note_ref = NoteRef { system_idx, staff_idx, measure_idx, element_idx: ei, subnote_idx: si };
+                    let note_color = if style.active_notes.contains(&note_ref) { highlight_color } else { color };
 
-                    // Offset seconds: if two notes are adjacent (diff=1), shift one horizontally
+                    // Offset seconds: if two notes are adjacent (diff=1), shift one
                     let offset_x = if positions
                         .iter()
                         .any(|(other_sp, _)| (*other_sp - *sp).abs() == 1)
@@ -268,53 +303,60 @@ pub fn render_measure_elements(
                         0.0
                     };
 
-                    // Accidental
                     if let Some(acc) = note.accidental_override {
                         super::note::render_accidental(
-                            painter,
-                            chord_x + offset_x,
-                            note_y,
-                            acc,
-                            line_spacing,
-                            color,
+                            painter, chord_x + offset_x, note_y, acc, line_spacing, note_color,
                         );
                     }
 
-                render_notehead(
-                    painter,
-                    chord_x + offset_x,
-                    egui::Pos2::new(chord_x + offset_x, staff_origin.y),
-                    *sp,
-                    note.figure,
-                    color,
-                    line_spacing,
-                );
+                    render_notehead(
+                        painter,
+                        chord_x + offset_x,
+                        egui::Pos2::new(chord_x + offset_x, staff_origin.y),
+                        *sp,
+                        note.figure,
+                        note_color,
+                        line_spacing,
+                    );
                 }
 
-                // Chord stem
+                // Chord stem: starts from the extreme note (highest for Up,
+                // lowest for Down) so all noteheads connect visually to the beam.
                 let top_y = staff_origin.y
                     - positions.first().map(|(sp, _)| *sp).unwrap_or(0) as f32 * half_spacing;
                 let bottom_y = staff_origin.y
                     - positions.last().map(|(sp, _)| *sp).unwrap_or(0) as f32 * half_spacing;
-                let chord_center_y = (top_y + bottom_y) / 2.0;
-                let chord_sp = ((staff_origin.y - chord_center_y) / half_spacing) as i8;
+                let (stem_note_y, stem_sp) = match direction {
+                    // Stem up: start from lowest note → covers all notes up to beam
+                    StemDirection::Up => {
+                        let sp = positions.last().map(|(s, _)| *s).unwrap_or(0);
+                        (bottom_y, sp)
+                    }
+                    // Stem down: start from highest note → covers all notes down to beam
+                    StemDirection::Down => {
+                        let sp = positions.first().map(|(s, _)| *s).unwrap_or(0);
+                        (top_y, sp)
+                    }
+                };
 
+                // Non-beamed chords use the same beam-position formula so the stem
+                // reaches the same height as if it were beamed.
+                let chord_stem_beam_y = stem_beam_y.or_else(|| match direction {
+                    StemDirection::Up => Some(top_y - line_spacing * 3.5),
+                    StemDirection::Down => Some(bottom_y + line_spacing * 3.5),
+                });
                 render_stem(
                     painter,
                     chord_x,
-                    chord_center_y,
-                    chord_sp,
-                    positions
-                        .first()
-                        .map(|(_, n)| n.figure)
-                        .unwrap_or(NoteFigure::Quarter),
+                    stem_note_y,
+                    stem_sp,
+                    positions.first().map(|(_, n)| n.figure).unwrap_or(NoteFigure::Quarter),
                     direction,
-                    false,
-                    None,
+                    is_beamed,
+                    chord_stem_beam_y,
                     line_spacing,
                     color,
                 );
-
                 // Dots for chord
                 if let Some(first_note) = notes.first() {
                     if first_note.dotted > 0 {
@@ -722,8 +764,8 @@ pub fn render_score(
     let mut y_offset = 0.0f32;
     let line_spacing = style.line_spacing;
 
-    for system in &score.systems {
-        for staff in &system.staves {
+    for (system_idx, system) in score.systems.iter().enumerate() {
+        for (staff_idx, staff) in system.staves.iter().enumerate() {
             let staff_color = style.sheet.staff_color(style.dark_mode);
             let bar_x = top_left.x + LEFT_MARGIN + system.left_margin;
             let clef_x = bar_x + INITIAL_BAR_GAP;
@@ -886,6 +928,9 @@ pub fn render_score(
                         measure_x,
                         mw,
                         style,
+                        system_idx,
+                        staff_idx,
+                        actual_idx,
                     );
 
                     // Directions

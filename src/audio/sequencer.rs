@@ -3,8 +3,8 @@
 //! sin sfizz — testeable sobre datos sintéticos sin hardware de audio.
 
 use crate::notation::{
-    Articulation, DirectionKind, DynamicMark, MeasureElement, Note, Score, Slur, SlurKind, Staff,
-    TieKind, TimeModification,
+    Articulation, DirectionKind, DynamicMark, MeasureElement, Note, NoteRef, Score, Slur, SlurKind,
+    Staff, TieKind, TimeModification,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -17,6 +17,9 @@ pub enum EventKind {
 pub struct SequencedEvent {
     pub time_secs: f32,
     pub kind: EventKind,
+    pub note_ref: NoteRef,
+    /// End time (for NoteOn only; 0.0 for NoteOff). Used by highlighting.
+    pub end_secs: f32,
 }
 
 const DEFAULT_TEMPO_BPM: f32 = 120.0;
@@ -29,24 +32,23 @@ const DEFAULT_GATE: f32 = 0.9;
 /// Construye la línea de tiempo completa de la partitura: todos los
 /// `System`/`Staff` suenan simultáneamente (son pentagramas simultáneos por
 /// definición — ver `notation::System`), cada uno recorrido de forma
-/// independiente y luego fusionados y ordenados por tiempo.
 pub fn build_events(score: &Score) -> Vec<SequencedEvent> {
     let mut events = Vec::new();
-    for system in &score.systems {
-        for staff in &system.staves {
-            build_staff_events(staff, &mut events);
+    for (system_idx, system) in score.systems.iter().enumerate() {
+        for (staff_idx, staff) in system.staves.iter().enumerate() {
+            build_staff_events(staff, system_idx, staff_idx, &mut events);
         }
     }
     events.sort_by(|a, b| a.time_secs.partial_cmp(&b.time_secs).unwrap());
     events
 }
 
-fn build_staff_events(staff: &Staff, out: &mut Vec<SequencedEvent>) {
+fn build_staff_events(staff: &Staff, system_idx: usize, staff_idx: usize, out: &mut Vec<SequencedEvent>) {
     let mut tempo_bpm = DEFAULT_TEMPO_BPM;
     let mut velocity = DEFAULT_VELOCITY;
     let mut absolute_time: f32 = 0.0;
 
-    for measure in &staff.measures {
+    for (measure_idx, measure) in staff.measures.iter().enumerate() {
         let divisions = measure.divisions.max(1) as f32;
 
         // Simplificación: el tempo/dinámica de nivel-compás se aplica desde
@@ -72,12 +74,19 @@ fn build_staff_events(staff: &Staff, out: &mut Vec<SequencedEvent>) {
         let mut cursor: f32 = 0.0;
         let mut measure_max_cursor: f32 = 0.0;
 
-        for elem in &measure.elements {
+        for (element_idx, elem) in measure.elements.iter().enumerate() {
             match elem {
                 MeasureElement::Note(note) => {
                     let dur = sounding_divisions(note, divisions);
                     let start = absolute_time + cursor * seconds_per_division;
-                    emit_note(note, start, seconds_per_division, dur, velocity, out);
+                    let note_ref = NoteRef {
+                        system_idx,
+                        staff_idx,
+                        measure_idx,
+                        element_idx,
+                        subnote_idx: 0,
+                    };
+                    emit_note(note, start, seconds_per_division, dur, velocity, note_ref, out);
                     cursor += dur;
                     measure_max_cursor = measure_max_cursor.max(cursor);
                 }
@@ -95,8 +104,15 @@ fn build_staff_events(staff: &Staff, out: &mut Vec<SequencedEvent>) {
                         .map(|n| sounding_divisions(n, divisions))
                         .unwrap_or(divisions);
                     let start = absolute_time + cursor * seconds_per_division;
-                    for note in notes {
-                        emit_note(note, start, seconds_per_division, dur, velocity, out);
+                    for (subnote_idx, note) in notes.iter().enumerate() {
+                        let note_ref = NoteRef {
+                            system_idx,
+                            staff_idx,
+                            measure_idx,
+                            element_idx,
+                            subnote_idx,
+                        };
+                        emit_note(note, start, seconds_per_division, dur, velocity, note_ref, out);
                     }
                     cursor += dur;
                     measure_max_cursor = measure_max_cursor.max(cursor);
@@ -145,6 +161,7 @@ fn emit_note(
     seconds_per_division: f32,
     duration_divisions: f32,
     default_velocity: u8,
+    note_ref: NoteRef,
     out: &mut Vec<SequencedEvent>,
 ) {
     if note.grace {
@@ -170,6 +187,8 @@ fn emit_note(
         )
     });
 
+    let note_end = start_secs + duration_divisions * seconds_per_division;
+
     if !has_incoming_tie {
         let velocity = note
             .attachments
@@ -180,6 +199,8 @@ fn emit_note(
         out.push(SequencedEvent {
             time_secs: start_secs,
             kind: EventKind::NoteOn { midi, velocity },
+            note_ref,
+            end_secs: note_end,
         });
     }
 
@@ -193,6 +214,8 @@ fn emit_note(
         out.push(SequencedEvent {
             time_secs: end_secs,
             kind: EventKind::NoteOff { midi },
+            note_ref,
+            end_secs: 0.0,
         });
     }
 }

@@ -9,6 +9,7 @@ Versionado semántico: `MAJOR.MINOR.PATCH`.
 ## [Sin publicar]
 
 ### Added
+- Soporte nativo de PipeWire para salida de audio: `select_host()` intenta PipeWire → JACK → default (ALSA), habilitado con `cpal = { features = ["pipewire"] }`. La app aparece como cliente PipeWire enrutable en qpwgraph/helvum/Carla.
 - Reproducción de partituras: botón Play/Stop en la barra de herramientas, secuenciador que recorre la partitura respetando tempo, ligaduras, tresillos, articulaciones (staccato, tenuto) y dinámicas, motor de síntesis sfizz (formato de instrumento SFZ) sobre `cpal` — nativo únicamente, ver ADR-008
 - Parseo de `<time-modification>` (ratio de tresillos/quintillos) en notas y silencios
 - Ventana borderless con barra superior personalizada (5% altura)
@@ -111,11 +112,16 @@ Versionado semántico: `MAJOR.MINOR.PATCH`.
 - Quiebre automático de compases en múltiples líneas cuando exceden el ancho disponible de página
 - Estiramiento proporcional de compases por línea para llenar el ancho completo del pentagrama
 - Repetición de la clave al inicio de cada renglón cuando un pentagrama se parte en varias líneas (convención de grabado estándar)
+- Resaltado de notas activas durante la reproducción: las notas que están sonando se muestran en color ámbar cálido (#D46A04 / #FFB347), configurable via stylesheet (`note_highlight_light` / `note_highlight_dark` en `[notation]`)
 
 ### Fixed
 - Los saltos de sistema explícitos del origen (`<print new-system="yes"/>` de MusicXML) ahora se respetan: antes se ignoraban y el layout paginado solo partía renglones por ancho disponible, produciendo una distribución de compases por línea distinta a la del archivo original (y de programas como Guitar Pro/MuseScore)
 - El tempo (metrónomo) ahora se alinea al margen izquierdo del pentagrama en vez de centrarse en el ancho completo de la página; antes quedaba "flotando" sin relación visual con el primer compás, sobre todo en sistemas con varios compases por renglón
+- Parser MusicXML: `chord_buffer` no se limpiaba entre acordes consecutivos cuando `held_note` era `None`, causando que todas las notas de un compás con múltiples acordes se colapsaran en un solo `Chord` de 24+ notas (en vez de N acordes separados)
+- Beam rendering: `compute_beams()` rompía los grupos de beam al encontrar un `MeasureElement::Chord`; ahora los acordes con figuras de corchea o más cortas participan en los grupos de beam igual que las notas sueltas. `beam_meta` y el renderizado de acordes también usan `is_beamed`/`stem_beam_y` del grupo
+- Beam rendering: las plicas de acordes ahora se extienden hasta la altura del beam cuando forman parte de un grupo (antes siempre eran plicas sueltas con `is_beamed = false`)
 
+- Beam rendering: las plicas de acordes no beamados (blancas, negras sin barra) ahora usan la misma fórmula de altura que los acordes beamados (`top_y - 3.5 * line_spacing`), alcanzando la misma posición vertical que alcanzaría el beam si existiera
 ### Changed
 - Calibrado el 100% de zoom para que coincida visualmente con partituras bien grabadas (comparado contra un PDF de referencia): antes había que subir a ~220% para lograr ese resultado. Zoom por defecto de un documento nuevo: 1.0 (antes 1.30). Ver ADR-007 en `docs/dev/DECISIONS.md`.
 

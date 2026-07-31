@@ -17,6 +17,7 @@ pub mod score;
 pub mod staff;
 pub mod system;
 pub mod tab;
+pub mod note_ref;
 pub mod tuplet;
 
 pub use attachment::{
@@ -43,6 +44,7 @@ pub use pitch::{Accidental, Pitch, Step};
 pub use rest::Rest;
 pub use score::{Credit, CreditJustify, CreditKind, PartGroup, PartInfo, PartList, Scaling, Score};
 pub use staff::{Staff, StaffKind};
+pub use note_ref::NoteRef;
 pub use system::{GroupBracket, System};
 pub use tab::{
     HarmonicKind, SlideKind, TabElement, TabMeasure, TabNote, TabRest, TabTechnique,

@@ -1,4 +1,5 @@
 use crate::musicxml::parse_musicxml;
+use std::collections::HashSet;
 use crate::{
     Accidental, BASE_SCALE, Barline, Clef, I18n, KeySignature, Lang, Measure, MeasureElement, Note,
     NoteFigure, PAGE_GAP, Pitch, RenderStyle, STAFF_LINE_SPACING, Score, ScoreStylesheet, Staff,
@@ -166,6 +167,8 @@ impl MGuitarApp {
 
         // Restore session: load files from previous run
         slf.restore_session();
+        #[cfg(not(target_arch = "wasm32"))]
+        slf.audio.ensure_stream();
 
         slf
 
@@ -492,69 +495,55 @@ impl eframe::App for MGuitarApp {
                     });
 
                     // ── Row 2: Toolbar ──
-                    ui.horizontal(|ui| {
-                        #[cfg(not(target_arch = "wasm32"))]
-                        {
-                            if let Some(err) = self.audio.take_last_error() {
-                                self.status_message = Some(err);
-                            }
-                            let playing = self.audio.is_playing();
-                            let has_doc = !self.documents.is_empty();
-                            if playing {
-                                if ui.button(self.i18n.t("stop")).clicked() {
+                    ui.columns(2, |cols| {
+                        cols[1].horizontal(|ui| {
+                            #[cfg(not(target_arch = "wasm32"))]
+                            {
+                                if let Some(err) = self.audio.take_last_error() {
+                                    self.status_message = Some(err);
+                                }
+                                let has_doc = !self.documents.is_empty();
+                                let playing = self.audio.is_playing();
+                                let paused = self.audio.is_paused();
+
+                                let seek_btn = ui.add_enabled(has_doc, egui::Button::new(self.i18n.t("seek_start")));
+                                if seek_btn.clicked() {
+                                    self.audio.seek_start();
+                                }
+
+                                if playing {
+                                    if ui.button(self.i18n.t("pause")).clicked() {
+                                        self.audio.pause();
+                                    }
+                                    ui.ctx().request_repaint();
+                                } else {
+                                    let play_btn = ui.add_enabled(has_doc, egui::Button::new(self.i18n.t("play")));
+                                    if play_btn.clicked() {
+                                        if paused {
+                                            self.audio.resume();
+                                        } else {
+                                            self.audio.play(&self.documents[self.active_doc].score);
+                                        }
+                                    }
+                                    if paused {
+                                        ui.ctx().request_repaint();
+                                    }
+                                }
+
+                                let stop_enabled = has_doc && (playing || paused);
+                                let stop_btn = ui.add_enabled(stop_enabled, egui::Button::new(self.i18n.t("stop")));
+                                if stop_btn.clicked() {
                                     self.audio.stop();
                                 }
-                                ui.ctx().request_repaint();
-                            } else {
-                                let button = ui.add_enabled(has_doc, egui::Button::new(self.i18n.t("play")));
-                                if button.clicked() {
-                                    self.audio.play(&self.documents[self.active_doc].score);
-                                }
                             }
-                        }
-                        #[cfg(target_arch = "wasm32")]
-                        {
-                            ui.add_enabled(false, egui::Button::new(self.i18n.t("play")))
-                                .on_disabled_hover_text(self.i18n.t("play_wasm_unavailable"));
-                        }
-                    });
-                    ui.add_space(4.0);
-                    // ── Row 3: Tabs ──
-                    if self.documents.len() > 1 {
-                        ui.horizontal(|ui| {
-                            let active_color = egui::Color32::from_rgb(0x44, 0x99, 0xFF);
-                            for (i, doc) in self.documents.iter().enumerate() {
-                                if i > 0 {
-                                    ui.label(
-                                        egui::RichText::new("|")
-                                            .color(egui::Color32::from_rgb(0x66, 0x66, 0x66))
-                                    );
-                                }
-                                let label = if doc.dirty {
-                                    format!("● {}", doc.label)
-                                } else {
-                                    doc.label.clone()
-                                };
-                                let response = ui
-                                    .add(
-                                        egui::Label::new(egui::RichText::new(label))
-                                            .sense(egui::Sense::click()),
-                                    )
-                                    .on_hover_cursor(egui::CursorIcon::Default);
-                                if i == self.active_doc {
-                                    let rect = response.rect;
-                                    let underline = egui::Rect::from_min_max(
-                                        egui::Pos2::new(rect.left(), rect.bottom()),
-                                        egui::Pos2::new(rect.right(), rect.bottom() + 1.0),
-                                    );
-                                    ui.painter().rect_filled(underline, 0.0, active_color);
-                                }
-                                if response.clicked() {
-                                    self.active_doc = i;
-                                }
+                            #[cfg(target_arch = "wasm32")]
+                            {
+                                ui.add_enabled(false, egui::Button::new(self.i18n.t("play")))
+                                    .on_disabled_hover_text(self.i18n.t("play_wasm_unavailable"));
                             }
                         });
-                    }
+                    });
+                    ui.add_space(2.0);
                 });
             });
 
@@ -657,10 +646,20 @@ impl eframe::App for MGuitarApp {
                 let render_zoom = zoom * BASE_SCALE;
                 let line_spacing =
                     STAFF_LINE_SPACING * render_zoom * sheet.notation.staff_scale;
+                #[cfg(not(target_arch = "wasm32"))]
+                let active_notes = if self.audio.is_playing() || self.audio.is_paused() {
+                    self.audio.active_note_refs()
+                } else {
+                    HashSet::new()
+                };
+                #[cfg(target_arch = "wasm32")]
+                let active_notes = HashSet::new();
+
                 let style = RenderStyle {
                     line_spacing,
                     dark_mode: false,
                     sheet: sheet.clone(),
+                    active_notes,
                 };
                 let header_height = (sheet.header.title_top_offset
                     + sheet.header.title_size
@@ -672,6 +671,57 @@ impl eframe::App for MGuitarApp {
                     * render_zoom;
                 let layout =
                     compute_pages(&self.documents[active].score, render_zoom, header_height);
+
+                // Tabs bar — alineada con el borde izquierdo de la partitura
+                if self.documents.len() > 1 {
+                    let available = ui.available_width();
+                    let pages_per_row =
+                        if available >= layout.page_width * 2.0 + PAGE_GAP * render_zoom {
+                            2
+                        } else {
+                            1
+                        };
+                    let row_width = pages_per_row as f32 * layout.page_width
+                        + (pages_per_row as f32 - 1.0) * PAGE_GAP * render_zoom;
+                    let left_pad = ((available - row_width) / 2.0).max(20.0);
+
+                    ui.horizontal(|ui| {
+                        ui.add_space(left_pad);
+                        let active_color = egui::Color32::from_rgb(0x44, 0x99, 0xFF);
+                        for (i, doc) in self.documents.iter().enumerate() {
+                            if i > 0 {
+                                ui.label(
+                                    egui::RichText::new("|")
+                                        .color(egui::Color32::from_rgb(0x66, 0x66, 0x66))
+                                );
+                            }
+                            let label = if doc.dirty {
+                                format!("● {}", doc.label)
+                            } else {
+                                doc.label.clone()
+                            };
+                            let response = ui
+                                .add(
+                                    egui::Label::new(egui::RichText::new(label))
+                                        .sense(egui::Sense::click()),
+                                )
+                                .on_hover_cursor(egui::CursorIcon::Default);
+                            if i == self.active_doc {
+                                let rect = response.rect;
+                                let underline = egui::Rect::from_min_max(
+                                    egui::Pos2::new(rect.left(), rect.bottom()),
+                                    egui::Pos2::new(rect.right(), rect.bottom() + 1.0),
+                                );
+                                ui.painter().rect_filled(underline, 0.0, active_color);
+                            }
+                            if response.clicked() {
+                                self.active_doc = i;
+                            }
+                        }
+                    });
+                    ui.add_space(4.0);
+                }
+
                 egui::ScrollArea::vertical()
                     .auto_shrink([false; 2])
                     .show(ui, |ui| {

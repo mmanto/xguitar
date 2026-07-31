@@ -92,6 +92,10 @@ pub struct NotationStyle {
     pub clefs: ClefStyle,
     #[serde(default = "default_staff_scale")]
     pub staff_scale: f32,
+    #[serde(default = "default_note_highlight_light")]
+    pub note_highlight_light: String,
+    #[serde(default = "default_note_highlight_dark")]
+    pub note_highlight_dark: String,
 }
 
 #[derive(Deserialize, Default, Clone, Debug)]
@@ -172,6 +176,8 @@ impl Default for NotationStyle {
             clef_dark: default_clef_dark(),
             clefs: ClefStyle::default(),
             staff_scale: default_staff_scale(),
+            note_highlight_light: default_note_highlight_light(),
+            note_highlight_dark: default_note_highlight_dark(),
         }
     }
 }
@@ -258,6 +264,13 @@ fn default_clef_light() -> String {
 }
 fn default_clef_dark() -> String {
     "#E0E0E0".into()
+}
+
+fn default_note_highlight_light() -> String {
+    "#D46A04".into()
+}
+fn default_note_highlight_dark() -> String {
+    "#FFB347".into()
 }
 
 fn default_staff_scale() -> f32 {
@@ -376,6 +389,8 @@ impl ScoreStylesheet {
                     },
                 },
                 staff_scale: default_staff_scale(),
+                note_highlight_light: default_note_highlight_light(),
+                note_highlight_dark: default_note_highlight_dark(),
             },
         }
     }
@@ -439,6 +454,14 @@ impl ScoreStylesheet {
         Self::resolve(
             &self.notation.clef_light,
             &self.notation.clef_dark,
+            dark_mode,
+        )
+    }
+
+    pub fn note_highlight_color(&self, dark_mode: bool) -> egui::Color32 {
+        Self::resolve(
+            &self.notation.note_highlight_light,
+            &self.notation.note_highlight_dark,
             dark_mode,
         )
     }
