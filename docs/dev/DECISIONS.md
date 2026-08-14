@@ -267,3 +267,54 @@ secuenciador ni la UI — pero ese motor wasm no se implementa todavía.
   `element_index` exacto) — cubre el caso común y evita la ambigüedad de
   resolver cambios de tempo a mitad de compás combinados con múltiples voces
   (`Backup`/`Forward`).
+
+---
+
+## ADR-009: Mapa de temas rediseñado como grilla de compases + minimapa
+
+**Estado:** Aceptado
+**Fecha:** 2026-08-01
+
+### Contexto
+El mapa de temas original (`render_theme_map`) era un timeline horizontal:
+un bloque grande por sección con ticks de compás dentro y bloques de acorde
+proporcionales. Servía para ver la progresión armónica de un vistazo, pero
+no daba noción de "compás individual" (no había un bloque 1:1 por compás) ni
+de estructura global del tema cuando había muchas secciones — todo vivía en
+una sola fila con scroll horizontal.
+
+### Opciones consideradas
+1. **Mantener el timeline, agregar zoom** — cambio mínimo, pero no resuelve
+   la falta de granularidad por compás.
+2. **Grilla de bloques por compás (uno por compás, como celdas de hoja de
+   cálculo) + minimapa de secciones** — cada compás es una unidad visual
+   propia (como en la vista de partitura, donde cada compás es un bloque
+   reconocible), agrupada por sección; un minimapa separado da la vista
+   panorámica que el timeline horizontal daba antes.
+
+### Decisión
+Opción 2. `render_theme_map` (`src/app.rs`) ahora renderiza:
+- Un minimapa horizontal fijo arriba: un segmento por sección de
+  `themes[0]`, ancho proporcional a su cantidad de compases, click hace
+  scroll de la grilla hasta esa sección.
+- Una tarjeta única con el fondo/borde del stylesheet activo (mismos colores
+  que las hojas A4 de la vista de partitura — reutiliza `sheet.page_bg()` /
+  `sheet.page_border()` en vez de inventar una paleta nueva), con una grilla
+  de bloques por compás agrupada por sección (header con color + label,
+  luego bloques que envuelven según ancho disponible).
+- Click en un bloque de compás conserva el comportamiento anterior: navega a
+  la vista de partitura en ese compás (`scroll_to_measure` + `ViewMode::Score`).
+
+El minimapa asume un único tema dominante (`themes[0]`) — la UI actual nunca
+crea más de un `Theme` por documento (`detect_sections_from_score` genera
+exactamente uno), así que no hay lógica de multiplexado entre temas.
+
+### Consecuencias
+- Se eliminó el modelo de "un bloque grande por sección con ticks de
+  compás" — el histórico de esa vista queda solo en este ADR y en el
+  changelog.
+- `Theme`/`Section`/`ChordProgression` (modelo de dominio,
+  `src/notation/theme.rs`) no cambiaron — el rediseño es puramente de
+  renderizado en `app.rs`.
+- Si en el futuro se soportan múltiples temas por documento, el minimapa
+  necesitará una UI de selección de tema (hoy asume `themes[0]`).

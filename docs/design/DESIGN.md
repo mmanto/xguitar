@@ -159,3 +159,37 @@ La partitura se renderiza dentro de hojas A4 virtuales con proporciones reales (
 - Si el ancho disponible permite 2 páginas + gap → 2 columnas
 - Si no hay espacio suficiente → 1 columna centrada
 - Recálculo por frame sin estado persistente
+
+---
+
+## Mapa de temas (Theme Map)
+
+Vista alternativa a la hoja de partitura, toggleable con 🗺️/🎼 en la toolbar.
+Reemplaza el timeline de bloques por sección (diseño anterior) por una
+grilla de bloques por compás con aspecto de hoja, más un minimapa de
+navegación rápida.
+
+### Minimapa
+
+- Franja horizontal fija en la parte superior del panel
+- Un segmento por sección, ancho proporcional a su cantidad de compases
+- Color: `Section::color` (hex) al 85% de opacidad, con label centrado si el
+  segmento es lo bastante ancho
+- Click en un segmento hace scroll de la grilla hasta el inicio de esa
+  sección (no navega a la partitura — mismo comportamiento que un minimapa
+  de editor de código)
+
+### Grilla de compases
+
+- Tarjeta única estilo hoja: `sheet.page_bg()`/`sheet.page_border()` del
+  stylesheet activo (mismos colores que las hojas A4 de la vista de
+  partitura), esquinas redondeadas 4px
+- Agrupada por sección: encabezado con muestra de color + label, seguido de
+  una grilla de bloques (uno por compás) que envuelve automáticamente según
+  el ancho disponible
+- Cada bloque: número de compás (esquina superior izquierda), acorde
+  centrado si cambia respecto al compás anterior, relleno con el color de
+  sección al 22% de opacidad
+- Click en un bloque navega a la vista de partitura en ese compás
+  (`scroll_to_measure` + `ViewMode::Score`) — mismo comportamiento que el
+  diseño anterior

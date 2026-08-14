@@ -9,6 +9,7 @@ Versionado semántico: `MAJOR.MINOR.PATCH`.
 ## [Sin publicar]
 
 ### Added
+- Módulo Fingerboard (`src/fingerboard/`): diapasón interactivo de guitarra (6 cuerdas) y bajo (4 cuerdas) con afinación estándar. Ventana flotante invocable desde un icono 🎸 en la barra de herramientas. Soporta selección de posiciones, toggle de intervalos, slider de trastes (5–24), control de tamaño (escala 0.5x–3.0x que amplía el dibujo para facilitar la lectura), y cambio entre guitarra/bajo.
 - Soporte nativo de PipeWire para salida de audio: `select_host()` intenta PipeWire → JACK → default (ALSA), habilitado con `cpal = { features = ["pipewire"] }`. La app aparece como cliente PipeWire enrutable en qpwgraph/helvum/Carla.
 - Reproducción de partituras: botón Play/Stop en la barra de herramientas, secuenciador que recorre la partitura respetando tempo, ligaduras, tresillos, articulaciones (staccato, tenuto) y dinámicas, motor de síntesis sfizz (formato de instrumento SFZ) sobre `cpal` — nativo únicamente, ver ADR-008
 - Parseo de `<time-modification>` (ratio de tresillos/quintillos) en notas y silencios
@@ -113,6 +114,11 @@ Versionado semántico: `MAJOR.MINOR.PATCH`.
 - Estiramiento proporcional de compases por línea para llenar el ancho completo del pentagrama
 - Repetición de la clave al inicio de cada renglón cuando un pentagrama se parte en varias líneas (convención de grabado estándar)
 - Resaltado de notas activas durante la reproducción: las notas que están sonando se muestran en color ámbar cálido (#D46A04 / #FFB347), configurable via stylesheet (`note_highlight_light` / `note_highlight_dark` en `[notation]`)
+- Vista de mapa de temas: grilla de bloques por compás con aspecto de hoja de partitura (colores del stylesheet activo), agrupados por sección musical (Intro, Verso, Estribillo, Puente, Solo, Outro) con acorde visible por bloque, más un minimapa horizontal de secciones (ancho proporcional a compases) para navegación rápida — ver ADR-009 en `docs/dev/DECISIONS.md`
+- Modelo de dominio para temas musicales: `Theme`, `Section`, `ChordProgression`, `ChordSymbol`, `SectionKind` en `src/notation/theme.rs`
+- Toggle 🗺️/🎼 en la toolbar para alternar entre vista de partitura y mapa de temas
+- Scroll programático: al clickear una sección en el mapa, la vista de partitura scrollea al compás correspondiente
+- Método `PageLayout::measure_position()` para mapear índice de compás a posición de página
 
 ### Fixed
 - Los saltos de sistema explícitos del origen (`<print new-system="yes"/>` de MusicXML) ahora se respetan: antes se ignoraban y el layout paginado solo partía renglones por ancho disponible, produciendo una distribución de compases por línea distinta a la del archivo original (y de programas como Guitar Pro/MuseScore)

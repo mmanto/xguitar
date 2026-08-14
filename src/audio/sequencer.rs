@@ -43,7 +43,12 @@ pub fn build_events(score: &Score) -> Vec<SequencedEvent> {
     events
 }
 
-fn build_staff_events(staff: &Staff, system_idx: usize, staff_idx: usize, out: &mut Vec<SequencedEvent>) {
+fn build_staff_events(
+    staff: &Staff,
+    system_idx: usize,
+    staff_idx: usize,
+    out: &mut Vec<SequencedEvent>,
+) {
     let mut tempo_bpm = DEFAULT_TEMPO_BPM;
     let mut velocity = DEFAULT_VELOCITY;
     let mut absolute_time: f32 = 0.0;
@@ -86,7 +91,15 @@ fn build_staff_events(staff: &Staff, system_idx: usize, staff_idx: usize, out: &
                         element_idx,
                         subnote_idx: 0,
                     };
-                    emit_note(note, start, seconds_per_division, dur, velocity, note_ref, out);
+                    emit_note(
+                        note,
+                        start,
+                        seconds_per_division,
+                        dur,
+                        velocity,
+                        note_ref,
+                        out,
+                    );
                     cursor += dur;
                     measure_max_cursor = measure_max_cursor.max(cursor);
                 }
@@ -112,7 +125,15 @@ fn build_staff_events(staff: &Staff, system_idx: usize, staff_idx: usize, out: &
                             element_idx,
                             subnote_idx,
                         };
-                        emit_note(note, start, seconds_per_division, dur, velocity, note_ref, out);
+                        emit_note(
+                            note,
+                            start,
+                            seconds_per_division,
+                            dur,
+                            velocity,
+                            note_ref,
+                            out,
+                        );
                     }
                     cursor += dur;
                     measure_max_cursor = measure_max_cursor.max(cursor);
@@ -230,7 +251,9 @@ fn gate_factor(articulations: &[Articulation], slurs: &[Slur]) -> f32 {
     if articulations.contains(&Articulation::Staccatissimo) {
         return 0.25;
     }
-    if articulations.contains(&Articulation::Staccato) || articulations.contains(&Articulation::Spiccato) {
+    if articulations.contains(&Articulation::Staccato)
+        || articulations.contains(&Articulation::Spiccato)
+    {
         return 0.5;
     }
     if articulations.contains(&Articulation::Tenuto) {
@@ -254,7 +277,11 @@ fn dynamic_velocity(mark: &DynamicMark) -> u8 {
         DynamicMark::FF => 112,
         DynamicMark::FFF => 120,
         DynamicMark::FFFF => 127,
-        DynamicMark::SF | DynamicMark::SFZ | DynamicMark::SFFZ | DynamicMark::FZ | DynamicMark::RFZ => 120,
+        DynamicMark::SF
+        | DynamicMark::SFZ
+        | DynamicMark::SFFZ
+        | DynamicMark::FZ
+        | DynamicMark::RFZ => 120,
         DynamicMark::SFP | DynamicMark::SFPP | DynamicMark::FP => 100,
         DynamicMark::RF => 108,
         DynamicMark::N | DynamicMark::PF => 80,
@@ -304,6 +331,7 @@ mod tests {
             directions: vec![],
             divisions,
             system_break: false,
+            chord_symbol: None,
         }
     }
 
@@ -373,10 +401,7 @@ mod tests {
         });
 
         let measure = measure_with(
-            vec![
-                MeasureElement::Note(first),
-                MeasureElement::Note(second),
-            ],
+            vec![MeasureElement::Note(first), MeasureElement::Note(second)],
             1,
         );
         let score = score_with_measures(vec![measure]);

@@ -1,6 +1,5 @@
 use super::beam::compute_beams;
 
-use std::collections::HashSet;
 use super::constants::{
     CLEF_WIDTH, DEFAULT_MEASURE_WIDTH, INITIAL_BAR_GAP, STAFF_HEIGHT, STAFF_LINE_COUNT,
     STAFF_LINE_SPACING, TIME_SIG_WIDTH,
@@ -19,6 +18,7 @@ use crate::notation::{
     StemDirection, TimeSignatureStyle,
 };
 use eframe::egui;
+use std::collections::HashSet;
 /// Estilo visual para el renderizado de partituras.
 #[derive(Clone)]
 pub struct RenderStyle {
@@ -150,8 +150,18 @@ pub fn render_measure_elements(
                 let note_x = measure_x + offsets[ei];
                 let sp = note.pitch.staff_position(clef);
                 let note_y = staff_origin.y - sp as f32 * line_spacing / 2.0;
-                let note_ref = NoteRef { system_idx, staff_idx, measure_idx, element_idx: ei, subnote_idx: 0 };
-                let note_color = if style.active_notes.contains(&note_ref) { highlight_color } else { color };
+                let note_ref = NoteRef {
+                    system_idx,
+                    staff_idx,
+                    measure_idx,
+                    element_idx: ei,
+                    subnote_idx: 0,
+                };
+                let note_color = if style.active_notes.contains(&note_ref) {
+                    highlight_color
+                } else {
+                    color
+                };
                 if let Some(acc) = note.accidental_override {
                     super::note::render_accidental(
                         painter,
@@ -186,9 +196,7 @@ pub fn render_measure_elements(
                 // Use the beam group's uniform direction and beam Y when beamed,
                 // otherwise auto-compute from staff position.
                 let (direction, stem_beam_y) = if is_beamed {
-                    let meta = beam_meta
-                        .iter()
-                        .find(|(s, e, _, _)| ei >= *s && ei <= *e);
+                    let meta = beam_meta.iter().find(|(s, e, _, _)| ei >= *s && ei <= *e);
                     let dir = meta.map(|(_, _, d, _)| *d).unwrap_or(StemDirection::Up);
                     let by = meta.map(|(_, _, _, y)| *y);
                     (dir, by)
@@ -264,9 +272,7 @@ pub fn render_measure_elements(
                 // otherwise auto-compute from average staff position.
                 let is_beamed = beams.iter().any(|b| ei >= b.start_idx && ei <= b.end_idx);
                 let (direction, stem_beam_y) = if is_beamed {
-                    let meta = beam_meta
-                        .iter()
-                        .find(|(s, e, _, _)| ei >= *s && ei <= *e);
+                    let meta = beam_meta.iter().find(|(s, e, _, _)| ei >= *s && ei <= *e);
                     let dir = meta.map(|(_, _, d, _)| *d).unwrap_or(StemDirection::Up);
                     let by = meta.map(|(_, _, _, y)| *y);
                     (dir, by)
@@ -281,13 +287,22 @@ pub fn render_measure_elements(
                     (dir, None)
                 };
 
-
                 let half_spacing = line_spacing / 2.0;
 
                 for (si, (sp, note)) in positions.iter().enumerate() {
                     let note_y = staff_origin.y - *sp as f32 * half_spacing;
-                    let note_ref = NoteRef { system_idx, staff_idx, measure_idx, element_idx: ei, subnote_idx: si };
-                    let note_color = if style.active_notes.contains(&note_ref) { highlight_color } else { color };
+                    let note_ref = NoteRef {
+                        system_idx,
+                        staff_idx,
+                        measure_idx,
+                        element_idx: ei,
+                        subnote_idx: si,
+                    };
+                    let note_color = if style.active_notes.contains(&note_ref) {
+                        highlight_color
+                    } else {
+                        color
+                    };
 
                     // Offset seconds: if two notes are adjacent (diff=1), shift one
                     let offset_x = if positions
@@ -305,7 +320,12 @@ pub fn render_measure_elements(
 
                     if let Some(acc) = note.accidental_override {
                         super::note::render_accidental(
-                            painter, chord_x + offset_x, note_y, acc, line_spacing, note_color,
+                            painter,
+                            chord_x + offset_x,
+                            note_y,
+                            acc,
+                            line_spacing,
+                            note_color,
                         );
                     }
 
@@ -350,7 +370,10 @@ pub fn render_measure_elements(
                     chord_x,
                     stem_note_y,
                     stem_sp,
-                    positions.first().map(|(_, n)| n.figure).unwrap_or(NoteFigure::Quarter),
+                    positions
+                        .first()
+                        .map(|(_, n)| n.figure)
+                        .unwrap_or(NoteFigure::Quarter),
                     direction,
                     is_beamed,
                     chord_stem_beam_y,
@@ -788,8 +811,12 @@ pub fn render_score(
 
             let measure_usable_full = max_width - LEFT_MARGIN - system.left_margin;
 
-            let lines =
-                break_measures_into_lines(&staff.measures, measure_usable_width, line_spacing, DEFAULT_MEASURE_WIDTH * 0.5);
+            let lines = break_measures_into_lines(
+                &staff.measures,
+                measure_usable_width,
+                line_spacing,
+                DEFAULT_MEASURE_WIDTH * 0.5,
+            );
 
             let mut prev_key: Option<&KeySignature> = None;
 
@@ -799,13 +826,7 @@ pub fn render_score(
                 let staff_top = egui::Pos2::new(bar_x, staff_top_y);
 
                 // Staff lines for this line segment
-                render_staff_lines(
-                    painter,
-                    staff_top,
-                    max_width,
-                    line_spacing,
-                    staff_color,
-                );
+                render_staff_lines(painter, staff_top, max_width, line_spacing, staff_color);
 
                 // First line only: initial bar, clef, key sig, time sig
                 if line_idx == 0 {
@@ -819,8 +840,7 @@ pub fn render_score(
                     );
 
                     let clef_top = egui::Pos2::new(clef_x, staff_top_y);
-                    let (glyph_scale, fine_offset) =
-                        get_clef_config(&style.sheet, staff.clef);
+                    let (glyph_scale, fine_offset) = get_clef_config(&style.sheet, staff.clef);
                     render_clef(
                         painter,
                         clef_top,
@@ -860,7 +880,11 @@ pub fn render_score(
                 }
 
                 // Compute left-aligned widths: last measure stretches to fill line
-                let line_available = if line_idx == 0 { measure_usable_width } else { measure_usable_full };
+                let line_available = if line_idx == 0 {
+                    measure_usable_width
+                } else {
+                    measure_usable_full
+                };
                 let measure_widths = crate::render::layout::compute_measure_widths(
                     line_measures,
                     line_available,
@@ -869,9 +893,12 @@ pub fn render_score(
                     line_spacing,
                 );
 
-                let measures_x = if line_idx == 0 { measures_x_first } else { bar_x };
-                let staff_origin =
-                    egui::Pos2::new(measures_x, staff_top_y + line_spacing * 2.0);
+                let measures_x = if line_idx == 0 {
+                    measures_x_first
+                } else {
+                    bar_x
+                };
+                let staff_origin = egui::Pos2::new(measures_x, staff_top_y + line_spacing * 2.0);
                 let measure_start_x = measures_x;
                 let mut measure_x = measure_start_x;
 
@@ -937,10 +964,7 @@ pub fn render_score(
                     let staff_end_x = measure_start_x + line_available;
                     let direction_offsets = element_offsets(&measure.elements, mw);
                     for direction in &measure.directions {
-                        if matches!(
-                            direction.kind,
-                            crate::notation::DirectionKind::Metronome(_)
-                        ) {
+                        if matches!(direction.kind, crate::notation::DirectionKind::Metronome(_)) {
                             continue;
                         }
                         let dx = direction_offsets

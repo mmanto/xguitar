@@ -39,7 +39,20 @@ impl I18n {
                 "stop" => "⏹",
                 "seek_start" => "⏮",
                 "play_wasm_unavailable" => "Reproducción no disponible en el navegador todavía",
-                "no_instrument" => "Sin instrumento configurado — elegí un archivo .sfz en Preferencias",
+                "no_instrument" => {
+                    "Sin instrumento configurado — elegí un archivo .sfz en Preferencias"
+                }
+                "theme_map" => "Mapa",
+                "theme_map_empty" => {
+                    "Sin temas definidos. Creá uno desde el menú Archivo → Nuevo tema."
+                }
+                "theme_map_default_name" => "Partitura completa",
+                "section_intro" => "Intro",
+                "section_verse" => "Verso",
+                "section_chorus" => "Estribillo",
+                "section_bridge" => "Puente",
+                "section_solo" => "Solo",
+                "section_outro" => "Outro",
                 _ => key,
             },
             Lang::En => match key {
@@ -55,6 +68,15 @@ impl I18n {
                     "Letter (C–B) → note | 1=Whole 2=Half 4=Quarter 8=Eighth 6=16th 32=32nd 33=64th | Enter to insert"
                 }
                 "new_score" => "New score created",
+                "theme_map" => "Map",
+                "theme_map_empty" => "No themes defined. Create one from File → New theme.",
+                "theme_map_default_name" => "Full score",
+                "section_intro" => "Intro",
+                "section_verse" => "Verse",
+                "section_chorus" => "Chorus",
+                "section_bridge" => "Bridge",
+                "section_solo" => "Solo",
+                "section_outro" => "Outro",
                 "open_success" => "{} loaded",
                 "open_error" => "Error opening: {}",
                 "play" => "▶",
@@ -92,13 +114,33 @@ mod tests {
             "open_error",
             "play_wasm_unavailable",
             "no_instrument",
+            "theme_map",
+            "theme_map_empty",
+            "theme_map_default_name",
+            "section_intro",
+            "section_verse",
+            "section_chorus",
+            "section_bridge",
+            "section_solo",
+            "section_outro",
+        ];
+        // Keys whose translations are intentionally identical across languages.
+        let same_ok: &[&str] = &[
+            "section_intro",
+            "section_verse",
+            "section_chorus",
+            "section_bridge",
+            "section_solo",
+            "section_outro",
         ];
         for key in keys {
             let es_val = es.t(key);
             let en_val = en.t(key);
             assert_ne!(es_val, key, "missing ES: {key}");
             assert_ne!(en_val, key, "missing EN: {key}");
-            assert_ne!(es_val, en_val, "same value ES/EN: {key}");
+            if !same_ok.contains(&key) {
+                assert_ne!(es_val, en_val, "same value ES/EN: {key}");
+            }
         }
     }
 

@@ -44,4 +44,6 @@ pub struct Measure {
     /// `true` si la partitura de origen marca explícitamente un salto de sistema
     /// antes de este compás (MusicXML `<print new-system="yes"/>`).
     pub system_break: bool,
+    /// Símbolo de acorde (de MusicXML `<harmony>`), si existe.
+    pub chord_symbol: Option<String>,
 }

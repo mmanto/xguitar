@@ -28,7 +28,6 @@ fn parse_simple_musicxml() {
     // File has 2 measures: 8 eighth chords + 1 half chord + rest
 }
 
-
 #[test]
 fn parse_test_1_xml() {
     let xml = std::fs::read_to_string("test-data/test.1.xml").expect("read test file");
@@ -122,4 +121,3 @@ fn parse_test_1_xml() {
         assert_eq!(note.figure, *fig, "m3 note {i} {:?}", fig);
     }
 }
-

@@ -1,6 +1,6 @@
 pub mod app;
-
 pub mod audio;
+pub mod fingerboard;
 pub mod fonts;
 pub mod i18n;
 pub mod musicxml;
@@ -13,15 +13,16 @@ pub use fonts::configure_fonts;
 pub use i18n::{I18n, Lang};
 pub use notation::{
     Accidental, Arpeggiate, ArpeggioDirection, Articulation, BarStyle, Barline, Bracket,
-    BracketKind, Clef, Credit, CreditJustify, CreditKind, Dashes, DashesKind, Direction,
-    DirectionKind, DynamicMark, Ending, Fermata, FermataShape, Glissando, GlissandoKind, GraceNote,
-    GroupBracket, HarmonicKind, KeyMode, KeySignature, LineEnd, LineType, Lyric, Measure,
-    MeasureElement, MeasureStyle, Metronome, MultipleRest, Note, NoteAttachment, NoteFigure,
-    NoteRef, OctaveShift, OctaveShiftKind, Ornament, PartGroup, PartInfo, PartList, Pitch,
-    Placement, RepeatDirection, Rest, Scaling, Score, SlashNote, SlideKind, Slur, SlurKind, Staff,
-    StaffKind, StemDirection, Step, Syllabic, System, SystemDividers, SystemLayout, TabElement,
-    TabMeasure, TabNote, TabRest, TabTechnique, TablatureStaff, Technical, Tie, TieKind,
-    TimeSignature, TimeSignatureStyle, Tremolo, TuningStep, Tuplet, TupletShow, Wedge, WedgeKind,
+    BracketKind, ChordProgression, ChordStep, ChordSymbol, Clef, Credit, CreditJustify, CreditKind,
+    Dashes, DashesKind, Direction, DirectionKind, DynamicMark, Ending, Fermata, FermataShape,
+    Glissando, GlissandoKind, GraceNote, GroupBracket, HarmonicKind, KeyMode, KeySignature,
+    LineEnd, LineType, Lyric, Measure, MeasureElement, MeasureStyle, Metronome, MultipleRest, Note,
+    NoteAttachment, NoteFigure, NoteRef, OctaveShift, OctaveShiftKind, Ornament, PartGroup,
+    PartInfo, PartList, Pitch, Placement, RepeatDirection, Rest, Scaling, Score, Section,
+    SectionKind, SlashNote, SlideKind, Slur, SlurKind, Staff, StaffKind, StemDirection, Step,
+    Syllabic, System, SystemDividers, SystemLayout, TabElement, TabMeasure, TabNote, TabRest,
+    TabTechnique, TablatureStaff, Technical, Theme, Tie, TieKind, TimeSignature,
+    TimeSignatureStyle, Tremolo, TuningStep, Tuplet, TupletShow, Wedge, WedgeKind,
 };
 pub use render::{
     BASE_SCALE, PAGE_GAP, Page, PageLayout, RenderStyle, STAFF_LINE_SPACING, ScoreStylesheet,

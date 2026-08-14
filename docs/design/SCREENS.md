@@ -42,6 +42,18 @@ Actualizar ante cualquier cambio en la navegación o nuevas vistas.
 |---|---|---|---|---|
 | VIEW-01 | `/` (integrado) | `render_pages` | Hojas A4 con sombra y bordes, scroll, zoom, layout responsive 1-2 páginas por fila | 🟡 Implementado |
 
+### Mapa de temas — grilla de compases + minimapa
+
+| ID | Ruta | Componente | Descripción | Estado |
+|---|---|---|---|---|
+| MAP-01 | `/` (integrado, toggle 🗺️) | `render_theme_map` | Minimapa horizontal con un segmento por sección (ancho proporcional a compases, click navega la grilla). Debajo, grilla de bloques por compás con aspecto de hoja de partitura (fondo/borde del stylesheet activo), agrupados por sección con encabezado y muestra de color. Click en un bloque navega a la vista de partitura en ese compás. | 🟢 Implementado |
+
+### Diapasón interactivo
+
+| ID | Componente | Descripción | Estado |
+|---|---|---|---|
+| FB-01 | `render_fingerboard` | Diapasón de guitarra (6 cuerdas) o bajo (4 cuerdas) en ventana flotante. Afinación estándar, trastes numerados, puntos de referencia, notas visibles, click para seleccionar posiciones. Toolbar interna: toggle Guitarra/Bajo, slider de trastes (5–24), control de tamaño (escala 0.5x–3.0x que amplía el alto/dibujo para facilitar la lectura), toggle de intervalos, botón Limpiar selección. | 🟢 Implementado |
+
 ### Nuevo archivo
 
 | ID | Ruta | Componente | Descripción | Estado |

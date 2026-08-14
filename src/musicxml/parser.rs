@@ -192,6 +192,7 @@ fn parse_part(part: &Node, part_info: Option<&PartInfo>) -> Result<Staff, MusicX
             directions: parse_directions(&measure_node),
             divisions: current_divisions,
             system_break,
+            chord_symbol: parse_harmony_from_measure(&measure_node),
         });
     }
 
@@ -1336,6 +1337,78 @@ fn parse_alter(pitch_node: &Node) -> Option<Accidental> {
 fn parse_octave(pitch_node: &Node) -> Option<i8> {
     // Per XSD, octave is type octave (xs:integer, minInclusive=0, maxInclusive=9)
     first_child_text(pitch_node, "octave").and_then(|s| s.parse().ok())
+}
+
+/// Extrae el símbolo de acorde del primer elemento `<harmony>` del compás.
+fn parse_harmony_from_measure(measure_node: &Node) -> Option<String> {
+    let harmony = measure_node
+        .children()
+        .find(|n| n.has_tag_name("harmony"))?;
+
+    let root_node = harmony.children().find(|n| n.has_tag_name("root"))?;
+    let root_step = first_child_text(&root_node, "root-step")?;
+    let root_alter: i8 = first_child_text(&root_node, "root-alter")
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(0);
+    let root_name = format!("{}{}", root_step, alter_to_str(root_alter));
+
+    let kind_node = harmony.children().find(|n| n.has_tag_name("kind"));
+    let kind_text_attr = kind_node.as_ref().and_then(|k| k.attribute("text"));
+    let kind_text = kind_node.and_then(|k| k.text());
+    let suffix = if let Some(text) = kind_text_attr {
+        text.to_string()
+    } else if let Some(kind) = kind_text {
+        kind_to_suffix(kind.trim()).to_string()
+    } else {
+        String::new()
+    };
+
+    let bass_node = harmony.children().find(|n| n.has_tag_name("bass"));
+    let bass_str = if let Some(bass) = bass_node {
+        let bass_step = first_child_text(&bass, "bass-step");
+        let bass_alter: i8 = first_child_text(&bass, "bass-alter")
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(0);
+        if let Some(step) = bass_step {
+            format!("/{}{}", step, alter_to_str(bass_alter))
+        } else {
+            String::new()
+        }
+    } else {
+        String::new()
+    };
+
+    Some(format!("{}{}{}", root_name, suffix, bass_str))
+}
+
+fn alter_to_str(alter: i8) -> &'static str {
+    match alter {
+        1 => "#",
+        -1 => "b",
+        _ => "",
+    }
+}
+
+fn kind_to_suffix(kind: &str) -> &'static str {
+    match kind {
+        "major" => "",
+        "minor" => "m",
+        "augmented" => "aug",
+        "diminished" => "dim",
+        "dominant" => "7",
+        "major-seventh" => "maj7",
+        "minor-seventh" => "m7",
+        "diminished-seventh" => "dim7",
+        "augmented-seventh" => "aug7",
+        "half-diminished" => "m7b5",
+        "major-minor" => "7",
+        "major-sixth" => "6",
+        "minor-sixth" => "m6",
+        "suspended-second" => "sus2",
+        "suspended-fourth" => "sus4",
+        "power" => "5",
+        _ => "",
+    }
 }
 
 #[cfg(test)]

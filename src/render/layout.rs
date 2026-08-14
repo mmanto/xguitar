@@ -249,6 +249,7 @@ mod tests {
             directions: vec![],
             divisions: 1,
             system_break: false,
+            chord_symbol: None,
         }
     }
 

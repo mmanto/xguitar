@@ -1,6 +1,6 @@
 use super::attachment::NoteAttachment;
-use super::lyric::Lyric;
 use super::figure::TimeModification;
+use super::lyric::Lyric;
 use super::{Accidental, NoteFigure, Pitch, Step};
 
 /// Dirección de la plica: hacia arriba o hacia abajo.

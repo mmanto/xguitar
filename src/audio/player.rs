@@ -12,12 +12,11 @@ use std::sync::mpsc::{self, Receiver, RecvTimeoutError};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 
+use super::PlaybackEngine;
 use super::sequencer::{self, EventKind, SequencedEvent};
 use super::sfizz::SfizzEngine;
-use super::PlaybackEngine;
 use crate::notation::{NoteRef, Score};
 
 /// Intenta hosts de audio en orden de preferencia: PipeWire > JACK > default.
@@ -176,9 +175,9 @@ impl AudioService {
         let pos = self.position_secs();
         self.note_events
             .iter()
-            .filter(|e| matches!(e.kind, EventKind::NoteOn { .. })
-                      && e.time_secs <= pos
-                      && pos < e.end_secs)
+            .filter(|e| {
+                matches!(e.kind, EventKind::NoteOn { .. }) && e.time_secs <= pos && pos < e.end_secs
+            })
             .map(|e| e.note_ref)
             .collect()
     }
@@ -250,14 +249,12 @@ fn run_audio_thread(
             }
         }
         None => {
-            *last_error.lock().unwrap() = Some(
-                "sin instrumento configurado — elegí un archivo .sfz en Preferencias".into(),
-            );
+            *last_error.lock().unwrap() =
+                Some("sin instrumento configurado — elegí un archivo .sfz en Preferencias".into());
         }
     }
 
-    let engine: Arc<Mutex<Box<dyn PlaybackEngine>>> =
-        Arc::new(Mutex::new(Box::new(engine)));
+    let engine: Arc<Mutex<Box<dyn PlaybackEngine>>> = Arc::new(Mutex::new(Box::new(engine)));
 
     let stream_engine = engine.clone();
     let stream = device.build_output_stream(
